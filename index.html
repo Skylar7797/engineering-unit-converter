@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Universal Engineering Unit Converter</title>
-<meta name="description" content="Convert all engineering units instantly. Mechanical, electrical, thermal, fluid, and scientific units supported.">
+<meta name="description" content="Convert engineering units instantly. Mechanical, electrical, thermal, and scientific units supported.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -14,28 +14,25 @@ select,input,button{padding:10px;font-size:15px}
 .converter{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .arrow{font-size:26px;font-weight:bold}
 .result{margin-top:20px;font-size:18px;font-weight:bold}
-section{margin-top:60px}
 footer{text-align:center;font-size:14px;color:#666;margin:50px 0}
+footer a{color:#444;text-decoration:none;margin:0 8px}
 </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6588262089798221" crossorigin="anonymous"></script>
 </head>
 
 <body>
 
 <header>
 <h1>Universal Engineering Unit Converter</h1>
-<p>All engineering units. One accurate conversion engine.</p>
+<p>Accurate unit conversion for engineers and students.</p>
 </header>
 
 <main>
-
 <h2>Unit Converter</h2>
 
 <select id="dimension" onchange="loadUnits()"></select>
 
 <div class="converter">
 <input type="number" id="inputValue" placeholder="Value">
-
 <select id="fromUnit"></select>
 <div class="arrow">→</div>
 <select id="toUnit"></select>
@@ -44,107 +41,39 @@ footer{text-align:center;font-size:14px;color:#666;margin:50px 0}
 <button onclick="convert()">Convert</button>
 <div class="result" id="output"></div>
 
-<!-- ===================== ENGINE ===================== -->
 <script>
-const units = {
-Length:{
-m:1, km:1000, cm:0.01, mm:0.001, in:0.0254, ft:0.3048
-},
-Area:{
-m2:1, cm2:1e-4, mm2:1e-6, ft2:0.092903
-},
-Volume:{
-m3:1, L:0.001, cm3:1e-6, ft3:0.0283168
-},
-Mass:{
-kg:1, g:0.001, mg:1e-6, lb:0.453592
-},
-Time:{
-s:1, min:60, h:3600
-},
-Velocity:{
-"m/s":1, "km/h":0.277778, "ft/s":0.3048
-},
-Acceleration:{
-"m/s2":1, "g":9.80665
-},
-Force:{
-N:1, kN:1000, lbf:4.44822
-},
-Pressure:{
-Pa:1, kPa:1000, MPa:1e6, bar:1e5, psi:6894.76
-},
-Energy:{
-J:1, kJ:1000, eV:1.602e-19, Wh:3600
-},
-Power:{
-W:1, kW:1000, hp:745.7
-},
-Frequency:{
-Hz:1, kHz:1e3, MHz:1e6
-},
-Voltage:{
-V:1, mV:0.001, kV:1000
-},
-Current:{
-A:1, mA:0.001
-},
-Resistance:{
-ohm:1, kohm:1000
-},
-Capacitance:{
-F:1, uF:1e-6, nF:1e-9
-},
-Inductance:{
-H:1, mH:1e-3
-}
-};
-
-function loadUnits(){
-const dim=document.getElementById("dimension").value;
-const from=document.getElementById("fromUnit");
-const to=document.getElementById("toUnit");
-from.innerHTML=to.innerHTML="";
-Object.keys(units[dim]).forEach(u=>{
-from.add(new Option(u,u));
-to.add(new Option(u,u));
-});
-}
-
-function convert(){
-const v=parseFloat(inputValue.value);
-const dim=dimension.value;
-if(isNaN(v)) return output.innerText="Enter a number";
-const r=v*units[dim][fromUnit.value]/units[dim][toUnit.value];
-output.innerText=`${v} ${fromUnit.value} → ${r.toPrecision(8)} ${toUnit.value}`;
-}
-
-Object.keys(units).forEach(d=>dimension.add(new Option(d,d)));
-loadUnits();
+const units={Length:{m:1,km:1000,cm:0.01,mm:0.001,in:0.0254,ft:0.3048},
+Area:{m2:1,cm2:1e-4,mm2:1e-6,ft2:0.092903},
+Volume:{m3:1,L:0.001,cm3:1e-6,ft3:0.0283168},
+Mass:{kg:1,g:0.001,mg:1e-6,lb:0.453592},
+Time:{s:1,min:60,h:3600},
+Velocity:{"m/s":1,"km/h":0.277778,"ft/s":0.3048},
+Acceleration:{"m/s2":1,g:9.80665},
+Force:{N:1,kN:1000,lbf:4.44822},
+Pressure:{Pa:1,kPa:1000,MPa:1e6,bar:1e5,psi:6894.76},
+Energy:{J:1,kJ:1000,eV:1.602e-19,Wh:3600},
+Power:{W:1,kW:1000,hp:745.7},
+Frequency:{Hz:1,kHz:1e3,MHz:1e6},
+Voltage:{V:1,mV:0.001,kV:1000},
+Current:{A:1,mA:0.001},
+Resistance:{ohm:1,kohm:1000},
+Capacitance:{F:1,uF:1e-6,nF:1e-9},
+Inductance:{H:1,mH:1e-3}};
+function loadUnits(){const d=dimension.value;fromUnit.innerHTML=toUnit.innerHTML="";
+Object.keys(units[d]).forEach(u=>{fromUnit.add(new Option(u,u));toUnit.add(new Option(u,u));});}
+function convert(){const v=parseFloat(inputValue.value);if(isNaN(v))return output.innerText="Enter a number";
+const r=v*units[dimension.value][fromUnit.value]/units[dimension.value][toUnit.value];
+output.innerText=`${v} ${fromUnit.value} → ${r.toPrecision(8)} ${toUnit.value}`;}
+Object.keys(units).forEach(d=>dimension.add(new Option(d,d)));loadUnits();
 </script>
-
-<!-- ===================== CONTENT ===================== -->
-<section id="about">
-<h2>About</h2>
-<p>This tool provides accurate unit conversion across all major engineering disciplines including mechanical, electrical, thermal, and semiconductor engineering.</p>
-</section>
-
-<section id="privacy">
-<h2>Privacy Policy</h2>
-<p>No personal data is collected. Third-party advertising services may use cookies.</p>
-</section>
-
-<section id="contact">
-<h2>Contact</h2>
-<p>For inquiries or suggestions, please contact the site administrator.</p>
-</section>
-
 </main>
 
 <footer>
-<p>© 2025 Universal Engineering Unit Converter</p>
+<a href="/guide.html">Engineering Unit Guide</a> |
+<a href="/about.html">About</a> |
+<a href="/privacy.html">Privacy Policy</a> |
+<a href="/contact.html">Contact</a>
 </footer>
 
 </body>
 </html>
-
