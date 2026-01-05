@@ -5,461 +5,96 @@
 <title>Engineering Calculator & Unit Converter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f3f5f9;
-  color:#1f2937
-}
-
-/* Header */
-header{
-  background:linear-gradient(135deg,#111827,#1f2937);
-  color:#fff;
-  padding:52px 20px;
-  text-align:center
-}
-
-/* Nav */
-nav{
-  background:#f9fafb;
-  border-bottom:1px solid #e5e7eb
-}
-.nav-inner{
-  max-width:1100px;
-  margin:auto;
-  display:flex;
-  justify-content:center;
-  gap:32px;
-  padding:14px;
-  font-weight:600
-}
-.nav-inner a {
-  color:#374151;
-  text-decoration:none;
-  padding:6px 12px;
-  border-radius:6px;
-  transition: all 0.2s;
-}
-.nav-inner a:hover {
-  background:#e5e7eb;
-  color:#111827;
-}
-.nav-inner a.active {
-  background:#2563eb;
-  color:#fff;
-  font-weight:600;
-}
-
-/* Main */
-main{
-  max-width:1100px;
-  margin:60px auto;
-  background:#fff;
-  padding:48px;
-  border-radius:16px;
-  box-shadow:0 12px 40px rgba(0,0,0,.08)
-}
-
-/* ===== Unit Converter ===== */
-.converter-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:24px;
-  margin-bottom:80px
-}
-.converter-box{
-  background:#fafafa;
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:24px
-}
-.converter-box select,
-.converter-box input,
-.converter-box button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  font-size:16px;
-  border-radius:8px;
-  border:1px solid #d1d5db
-}
-.row{
-  display:flex;
-  gap:10px;
-  align-items:center
-}
-.arrow{
-  font-size:22px;
-  font-weight:bold
-}
-.result{
-  margin-top:10px;
-  font-weight:bold
-}
-
-/* ===== Calculator Layout ===== */
-.calc-layout{
-  display:grid;
-  grid-template-columns:1fr 260px;
-  gap:24px
-}
-.calc-box{
-  background:#0f172a;
-  padding:26px;
-  border-radius:16px;
-  color:#fff
-}
-
-/* History */
-.history{
-  font-size:14px;
-  margin:18px 0 14px 0
-}
-.history div{
-  padding:6px;
-  margin-bottom:6px;
-  border-bottom:1px solid rgba(255,255,255,.2)
-}
-
-/* Screen */
-.calc-screen{
-  background:#e5e7eb;
-  color:#111;
-  height:54px;
-  font-size:22px;
-  padding:10px 12px;
-  width:100%;
-  box-sizing:border-box;
-  border-radius:8px;
-  border:none;
-  margin-bottom:6px
-}
-
-/* Angle */
-.angle-mode{
-  font-size:13px;
-  color:#ef4444;
-  margin-bottom:8px
-}
-
-/* Latest */
-.latest{
-  background:#1f2937;
-  padding:8px;
-  border-radius:6px;
-  font-size:14px;
-  margin-bottom:16px
-}
-
-/* Keys */
-.keys{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:10px
-}
-.key{
-  padding:14px 0;
-  border-radius:8px;
-  border:none;
-  font-size:15px;
-  cursor:pointer;
-  background:#1f2937;
-  color:#fff
-}
-.key.func{background:#374151}
-.key.op{background:#2563eb}
-.key.equal{background:#16a34a;grid-column:span 2}
-
-/* Notes */
-.notes{
-  display:flex;
-  flex-direction:column;
-  gap:10px
-}
-.note-title{
-  font-weight:bold;
-  text-align:center
-}
-.note{
-  flex:1;
-  resize:none;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
-  font-size:14px
-}
-
-/* Footer */
-footer{
-  margin-top:60px;
-  padding:40px 20px;
-  text-align:center;
-  font-size:14px;
-  color:#6b7280
-}
-footer a{color:#4b5563;text-decoration:none;margin:0 10px}
-
-@media(max-width:900px){
-  .converter-grid,
-  .calc-layout{grid-template-columns:1fr}
-}
-</style>
+<!-- CSS 분리 -->
+<link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
 <header>
-<h1>Engineering Calculator</h1>
-<p>Professional engineering tools</p>
+  <h1>Engineering Calculator</h1>
+  <p>Professional engineering tools</p>
 </header>
 
 <nav>
-<div class="nav-inner">
-  <a href="#" class="nav-link active" data-page="converter">Converter & Calculator</a>
-  <a href="#" class="nav-link" data-page="insights">Insights</a>
-  <a href="#" class="nav-link" data-page="faq">FAQ</a>
-  <a href="#" class="nav-link" data-page="help">Help</a>
-</div>
+  <div class="nav-inner">
+    <a href="#" class="nav-link active" data-page="converter">Converter & Calculator</a>
+    <a href="#" class="nav-link" data-page="insights">Insights</a>
+    <a href="#" class="nav-link" data-page="faq">FAQ</a>
+    <a href="#" class="nav-link" data-page="help">Help</a>
+  </div>
 </nav>
 
 <main id="main-content">
+  <!-- Converter & Calculator -->
+  <div id="page-converter" class="page">
+    <!-- Unit Converter -->
+    <h2>Unit Converter</h2>
+    <div class="converter-grid">
+      <div class="converter-box">
+        <select id="dimA"></select>
+        <div class="row">
+          <input type="number" id="valA">
+          <select id="fromA"></select>
+          <div class="arrow">→</div>
+          <select id="toA"></select>
+        </div>
+        <button onclick="convert('A')">Convert</button>
+        <div class="result" id="outA"></div>
+      </div>
 
-<h2>Unit Converter</h2>
-
-<div class="converter-grid">
-  <div class="converter-box">
-    <select id="dimA"></select>
-    <div class="row">
-      <input type="number" id="valA">
-      <select id="fromA"></select>
-      <div class="arrow">→</div>
-      <select id="toA"></select>
+      <div class="converter-box">
+        <select id="dimB"></select>
+        <div class="row">
+          <input type="number" id="valB">
+          <select id="fromB"></select>
+          <div class="arrow">→</div>
+          <select id="toB"></select>
+        </div>
+        <button onclick="convert('B')">Convert</button>
+        <div class="result" id="outB"></div>
+      </div>
     </div>
-    <button onclick="convert('A')">Convert</button>
-    <div class="result" id="outA"></div>
+
+    <!-- Scientific Calculator -->
+    <h2>Scientific Calculator</h2>
+    <div class="calc-layout">
+      <div class="calc-box">
+        <div class="history" id="history"></div>
+        <input class="calc-screen" id="screen" type="text">
+        <div class="angle-mode" id="angleMode">Angle Mode: RAD</div>
+        <div class="latest" id="latest">Latest: —</div>
+        <div class="keys" id="calculator-keys"></div>
+      </div>
+
+      <div class="notes">
+        <div class="note-title">Note 1</div><textarea class="note"></textarea>
+        <div class="note-title">Note 2</div><textarea class="note"></textarea>
+        <div class="note-title">Note 3</div><textarea class="note"></textarea>
+      </div>
+    </div>
   </div>
 
-  <div class="converter-box">
-    <select id="dimB"></select>
-    <div class="row">
-      <input type="number" id="valB">
-      <select id="fromB"></select>
-      <div class="arrow">→</div>
-      <select id="toB"></select>
-    </div>
-    <button onclick="convert('B')">Convert</button>
-    <div class="result" id="outB"></div>
-  </div>
-</div>
+  <!-- Insights -->
+  <div id="page-insights" class="page" style="display:none;"></div>
 
-<h2>Scientific Calculator</h2>
+  <!-- FAQ -->
+  <div id="page-faq" class="page" style="display:none;"></div>
 
-<div class="calc-layout">
+  <!-- Help -->
+  <div id="page-help" class="page" style="display:none;"></div>
 
-<div class="calc-box">
-<div class="history" id="history"></div>
-
-<input class="calc-screen" id="screen" type="text">
-
-<div class="angle-mode" id="angleMode">Angle Mode: RAD</div>
-<div class="latest" id="latest">Latest: —</div>
-
-<div class="keys">
-  <button class="key func" onclick="toggleAngle()">RAD / DEG</button>
-  <button class="key func" onclick="addFn('sin')">sin</button>
-  <button class="key func" onclick="addFn('cos')">cos</button>
-  <button class="key func" onclick="addFn('tan')">tan</button>
-  <button class="key func" onclick="addFn('log')">log</button>
-
-  <button class="key func" onclick="sqrt()">√</button>
-  <button class="key func" onclick="reciprocal()">1/x</button>
-  <button class="key func" onclick="toggleSign()">±</button>
-  <button class="key op" onclick="power()">xʸ</button>
-  <button class="key func" onclick="addFn('ln')">ln</button>
-
-  <button class="key" onclick="add('7')">7</button>
-  <button class="key" onclick="add('8')">8</button>
-  <button class="key" onclick="add('9')">9</button>
-  <button class="key op" onclick="addOp('/')">÷</button>
-  <button class="key func" onclick="addConst('pi')">π</button>
-
-  <button class="key" onclick="add('4')">4</button>
-  <button class="key" onclick="add('5')">5</button>
-  <button class="key" onclick="add('6')">6</button>
-  <button class="key op" onclick="addOp('*')">×</button>
-  <button class="key func" onclick="addConst('e')">e</button>
-
-  <button class="key" onclick="add('1')">1</button>
-  <button class="key" onclick="add('2')">2</button>
-  <button class="key" onclick="add('3')">3</button>
-  <button class="key op" onclick="addOp('-')">−</button>
-  <button class="key func" onclick="clearAll()">AC</button>
-
-  <button class="key" onclick="add('0')">0</button>
-  <button class="key" onclick="add('.')">.</button>
-  <button class="key op" onclick="addOp('+')">+</button>
-  <button class="key equal" onclick="calc()">=</button>
-</div>
-</div>
-
-<div class="notes">
-  <div class="note-title">Note 1</div>
-  <textarea class="note"></textarea>
-  <div class="note-title">Note 2</div>
-  <textarea class="note"></textarea>
-  <div class="note-title">Note 3</div>
-  <textarea class="note"></textarea>
-</div>
-
-</div>
 </main>
 
 <footer>
-<a href="/about.html">About</a> |
-<a href="/privacy.html">Privacy Policy</a> |
-<a href="/contact.html">Contact</a>
+  <a href="/about.html">About</a> |
+  <a href="/privacy.html">Privacy Policy</a> |
+  <a href="/contact.html">Contact</a>
 </footer>
 
-<script>
-/* ===== Units ===== */
-const units={
- Length:{m:1,km:1000,cm:0.01,mm:0.001,in:0.0254,ft:0.3048},
- Area:{m2:1,cm2:1e-4,mm2:1e-6,ft2:0.092903},
- Volume:{m3:1,L:0.001,cm3:1e-6,ft3:0.0283168},
- Mass:{kg:1,g:0.001,mg:1e-6,lb:0.453592},
- Time:{s:1,min:60,h:3600},
- Force:{N:1,kN:1000,lbf:4.44822},
- Pressure:{Pa:1,kPa:1000,MPa:1e6,bar:1e5,psi:6894.76},
- Energy:{J:1,kJ:1000,Wh:3600,eV:1.602e-19},
- Power:{W:1,kW:1000,hp:745.7}
-};
-
-function init(){
- ['A','B'].forEach(id=>{
-   const dim=document.getElementById('dim'+id);
-   Object.keys(units).forEach(d=>dim.add(new Option(d,d)));
-   dim.onchange=()=>loadUnits(id);
-   loadUnits(id);
- });
-}
-function loadUnits(id){
- const d=document.getElementById('dim'+id).value;
- const f=document.getElementById('from'+id);
- const t=document.getElementById('to'+id);
- f.innerHTML=t.innerHTML="";
- Object.keys(units[d]).forEach(u=>{
-   f.add(new Option(u,u));
-   t.add(new Option(u,u));
- });
-}
-function convert(id){
- const v=parseFloat(document.getElementById('val'+id).value);
- if(isNaN(v))return;
- const d=document.getElementById('dim'+id).value;
- const f=document.getElementById('from'+id).value;
- const t=document.getElementById('to'+id).value;
- document.getElementById('out'+id).innerText=
-  (v*units[d][f]/units[d][t]).toPrecision(8)+" "+t;
-}
-
-/* ===== Calculator ===== */
-const screen=document.getElementById("screen");
-const historyBox=document.getElementById("history");
-const latestBox=document.getElementById("latest");
-const angleBox=document.getElementById("angleMode");
-
-let displayExpr="", evalExpr="", history=[];
-let angleMode="RAD";
-
-function __sin(x){return angleMode==="DEG"?Math.sin(x*Math.PI/180):Math.sin(x);}
-function __cos(x){return angleMode==="DEG"?Math.cos(x*Math.PI/180):Math.cos(x);}
-function __tan(x){return angleMode==="DEG"?Math.tan(x*Math.PI/180):Math.tan(x);}
-
-function toggleAngle(){
- angleMode=angleMode==="RAD"?"DEG":"RAD";
- angleBox.innerText="Angle Mode: "+angleMode;
-}
-
-function update(){screen.value=displayExpr||"0";}
-function add(v){displayExpr+=v;evalExpr+=v;update();}
-function addOp(o){displayExpr+=o;evalExpr+=o;update();}
-function addConst(t){
- if(t==="pi"){displayExpr+="π";evalExpr+="Math.PI";}
- if(t==="e"){displayExpr+="e";evalExpr+="Math.E";}
- update();
-}
-function addFn(f){
- if(displayExpr.endsWith("(")) return;
- displayExpr+=f+"(";
- if(f==="ln") evalExpr+="Math.log(";
- else if(f==="log") evalExpr+="Math.log10(";
- else evalExpr+="__"+f+"(";
- update();
-}
-function power(){displayExpr+="^";evalExpr+="**";update();}
-function sqrt(){displayExpr+="√(";evalExpr+="Math.sqrt(";update();}
-function reciprocal(){displayExpr="1/("+displayExpr+")";evalExpr="1/("+evalExpr+")";update();}
-function toggleSign(){displayExpr="-("+displayExpr+")";evalExpr="-("+evalExpr+")";update();}
-
-function calc(){
- try{
-  const r=Function("return "+evalExpr)();
-  const rec=`${displayExpr} = ${r}`;
-  history.push(rec); if(history.length>5)history.shift();
-  historyBox.innerHTML=history.map((h,i)=>`<div>[${i+1}] ${h}</div>`).join("");
-  latestBox.innerText="Latest: "+rec;
-  displayExpr=String(r); evalExpr=String(r); update();
- }catch{
-  displayExpr="Error"; evalExpr=""; update();
-}
-}
-function clearAll(){displayExpr="";evalExpr="";update();}
-
-screen.addEventListener("input",()=>{
- displayExpr=screen.value;
- evalExpr=displayExpr
-  .replace(/√\(/g,"Math.sqrt(")
-  .replace(/sin\(/g,"__sin(")
-  .replace(/cos\(/g,"__cos(")
-  .replace(/tan\(/g,"__tan(")
-  .replace(/ln\(/g,"Math.log(")
-  .replace(/log\(/g,"Math.log10(")
-  .replace(/π/g,"Math.PI")
-  .replace(/\^/g,"**");
-});
-screen.addEventListener("keydown",e=>{
- if(e.key==="Enter"){e.preventDefault();calc();}
-});
-
-document.addEventListener("DOMContentLoaded",init);
-
-/* ===== SPA Navigator ===== */
-const mainContent = document.getElementById('main-content');
-const pages = {
-  converter: mainContent,
-  insights: document.createElement('div'),
-  faq: document.createElement('div'),
-  help: document.createElement('div')
-};
-pages.insights.innerHTML = "<h2>Insights</h2><p>Insights content...</p>";
-pages.faq.innerHTML = "<h2>FAQ</h2><p>FAQ content...</p>";
-pages.help.innerHTML = "<h2>Help</h2><p>Help content...</p>";
-
-const navLinks = document.querySelectorAll('.nav-link');
-navLinks.forEach(link=>{
-  link.addEventListener('click', e=>{
-    e.preventDefault();
-    navLinks.forEach(l=>l.classList.remove('active'));
-    link.classList.add('active');
-
-    const pageKey = link.dataset.page;
-    const current = document.querySelector('main');
-    current.replaceWith(pages[pageKey]);
-  });
-});
-</script>
-
+<!-- JS 분리 -->
+<script src="js/converter.js"></script>
+<script src="js/calculator.js"></script>
+<script src="js/spa.js"></script>
 </body>
 </html>
