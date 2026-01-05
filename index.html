@@ -35,7 +35,22 @@ nav{
   padding:14px;
   font-weight:600
 }
-nav a{color:#374151;text-decoration:none}
+.nav-inner a {
+  color:#374151;
+  text-decoration:none;
+  padding:6px 12px;
+  border-radius:6px;
+  transition: all 0.2s;
+}
+.nav-inner a:hover {
+  background:#e5e7eb;
+  color:#111827;
+}
+.nav-inner a.active {
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+}
 
 /* Main */
 main{
@@ -202,14 +217,14 @@ footer a{color:#4b5563;text-decoration:none;margin:0 10px}
 
 <nav>
 <div class="nav-inner">
-  <a href="#">Calculator</a>
-  <a href="#">Unit Converter</a>
-  <a href="#">Notes</a>
-  <a href="#">Help</a>
+  <a href="#" class="nav-link active" data-page="converter">Converter & Calculator</a>
+  <a href="#" class="nav-link" data-page="insights">Insights</a>
+  <a href="#" class="nav-link" data-page="faq">FAQ</a>
+  <a href="#" class="nav-link" data-page="help">Help</a>
 </div>
 </nav>
 
-<main>
+<main id="main-content">
 
 <h2>Unit Converter</h2>
 
@@ -398,7 +413,7 @@ function calc(){
   displayExpr=String(r); evalExpr=String(r); update();
  }catch{
   displayExpr="Error"; evalExpr=""; update();
- }
+}
 }
 function clearAll(){displayExpr="";evalExpr="";update();}
 
@@ -419,6 +434,31 @@ screen.addEventListener("keydown",e=>{
 });
 
 document.addEventListener("DOMContentLoaded",init);
+
+/* ===== SPA Navigator ===== */
+const mainContent = document.getElementById('main-content');
+const pages = {
+  converter: mainContent,
+  insights: document.createElement('div'),
+  faq: document.createElement('div'),
+  help: document.createElement('div')
+};
+pages.insights.innerHTML = "<h2>Insights</h2><p>Insights content...</p>";
+pages.faq.innerHTML = "<h2>FAQ</h2><p>FAQ content...</p>";
+pages.help.innerHTML = "<h2>Help</h2><p>Help content...</p>";
+
+const navLinks = document.querySelectorAll('.nav-link');
+navLinks.forEach(link=>{
+  link.addEventListener('click', e=>{
+    e.preventDefault();
+    navLinks.forEach(l=>l.classList.remove('active'));
+    link.classList.add('active');
+
+    const pageKey = link.dataset.page;
+    const current = document.querySelector('main');
+    current.replaceWith(pages[pageKey]);
+  });
+});
 </script>
 
 </body>
