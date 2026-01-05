@@ -28,6 +28,13 @@ navLinks.forEach(link=>{
   });
 });
 
+document.addEventListener('click', e => {
+  if(e.target.matches('.insights-list h3')){
+    const content = e.target.nextElementSibling;
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+  }
+});
+
 // DOM 로드 후 초기화
 document.addEventListener('DOMContentLoaded', ()=>{
   // Insights 컨텐츠 동적으로 추가
