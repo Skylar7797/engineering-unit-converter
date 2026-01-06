@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- GA4 태그 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1VBV3J3DVG');
+</script>  
 <title>Engineering Calculator & Unit Converter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -136,8 +144,21 @@
 <script src="js/converter.js"></script>
 <script src="js/calculator.js"></script>
 <script src="js/spa.js"></script>
+
+<!-- GA -->
+<script>
+  function trackPage(path, title) {
+    if (typeof gtag === 'function') {
+      gtag('event', 'page_view', {
+        page_path: path,
+        page_title: title
+      });
+    }
+  }
+</script>
 </body>
 </html>
+
 
 
 
