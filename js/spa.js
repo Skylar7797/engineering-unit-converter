@@ -4,7 +4,9 @@ const navLinks = document.querySelectorAll('.nav-link');
 navLinks.forEach(link => {
   link.addEventListener('click', e => {
     e.preventDefault();
-    const pageId = "page-" + link.dataset.page;
+
+    const pageKey = link.dataset.page;
+    const pageId = "page-" + pageKey;
 
     document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
 
@@ -13,8 +15,12 @@ navLinks.forEach(link => {
 
     navLinks.forEach(l => l.classList.remove('active'));
     link.classList.add('active');
+
+    // GA4 SPA page_view
+    trackPage('/' + pageKey, pageKey.toUpperCase());
   });
 });
+
 
 // 이벤트 위임으로 토글 처리
 document.addEventListener('click', e => {
@@ -26,6 +32,9 @@ document.addEventListener('click', e => {
 
 // DOM 로드 후 초기화
 document.addEventListener('DOMContentLoaded', () => {
+  // GA4 최초 페이지뷰 (SPA 필수)
+  trackPage('/', 'Home');
+  
   // === INSIGHTS ===
   const insightsList = document.querySelector('#page-insights .insights-list');
   const insights = [
