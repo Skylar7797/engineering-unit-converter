@@ -1,69 +1,152 @@
-/* ===== Calculator ===== */
-const screen=document.getElementById("screen");
-const historyBox=document.getElementById("history");
-const latestBox=document.getElementById("latest");
-const angleBox=document.getElementById("angleMode");
+/* =========================================================
+   Engineering Workbench - Scientific Calculator
+   calculator.js
+   ========================================================= */
 
-let displayExpr="", evalExpr="", history=[];
-let angleMode="RAD";
+const inputEl = document.getElementById("calc-input");
+const historyEl = document.getElementById("calc-history");
+const angleModeEl = document.getElementById("angle-mode");
 
-function __sin(x){return angleMode==="DEG"?Math.sin(x*Math.PI/180):Math.sin(x);}
-function __cos(x){return angleMode==="DEG"?Math.cos(x*Math.PI/180):Math.cos(x);}
-function __tan(x){return angleMode==="DEG"?Math.tan(x*Math.PI/180):Math.tan(x);}
+let expression = "";
+let history = [];
+let angleMode = "DEG"; // DEG | RAD
 
-function toggleAngle(){
- angleMode=angleMode==="RAD"?"DEG":"RAD";
- angleBox.innerText="Angle Mode: "+angleMode;
+/* -----------------------------
+   Utility
+----------------------------- */
+
+function updateDisplay() {
+  inputEl.value = expression || "0";
 }
 
-function update(){screen.value=displayExpr||"0";}
-function add(v){displayExpr+=v;evalExpr+=v;update();}
-function addOp(o){displayExpr+=o;evalExpr+=o;update();}
-function addConst(t){
- if(t==="pi"){displayExpr+="π";evalExpr+="Math.PI";}
- if(t==="e"){displayExpr+="e";evalExpr+="Math.E";}
- update();
+function updateHistory() {
+  historyEl.innerHTML = history
+    .slice(-5)
+    .map(h => `<div class="history-item">${h}</div>`)
+    .join("");
 }
-function addFn(f){
- if(displayExpr.endsWith("(")) return;
- displayExpr+=f+"(";
- if(f==="ln") evalExpr+="Math.log(";
- else if(f==="log") evalExpr+="Math.log10(";
- else evalExpr+="__"+f+"(";
- update();
-}
-function power(){displayExpr+="^";evalExpr+="**";update();}
-function sqrt(){displayExpr+="√(";evalExpr+="Math.sqrt(";update();}
-function reciprocal(){displayExpr="1/("+displayExpr+")";evalExpr="1/("+evalExpr+")";update();}
-function toggleSign(){displayExpr="-("+displayExpr+")";evalExpr="-("+evalExpr+")";update();}
 
-function calc(){
- try{
-  const r=Function("return "+evalExpr)();
-  const rec=`${displayExpr} = ${r}`;
-  history.push(rec); if(history.length>5)history.shift();
-  historyBox.innerHTML=history.map((h,i)=>`<div>[${i+1}] ${h}</div>`).join("");
-  latestBox.innerText="Latest: "+rec;
-  displayExpr=String(r); evalExpr=String(r); update();
- }catch{
-  displayExpr="Error"; evalExpr=""; update();
+function toRadians(x) {
+  return angleMode === "DEG" ? (x * Math.PI) / 180 : x;
 }
-}
-function clearAll(){displayExpr="";evalExpr="";update();}
 
-screen.addEventListener("input",()=>{
- displayExpr=screen.value;
- evalExpr=displayExpr
-  .replace(/√\(/g,"Math.sqrt(")
-  .replace(/sin\(/g,"__sin(")
-  .replace(/cos\(/g,"__cos(")
-  .replace(/tan\(/g,"__tan(")
-  .replace(/ln\(/g,"Math.log(")
-  .replace(/log\(/g,"Math.log10(")
-  .replace(/π/g,"Math.PI")
-  .replace(/\^/g,"**");
+/* -----------------------------
+   Math Function Mapping
+----------------------------- */
+
+const funcMap = {
+  sin: x => Math.sin(toRadians(x)),
+  cos: x => Math.cos(toRadians(x)),
+  tan: x => Math.tan(toRadians(x)),
+  asin: x => angleMode === "DEG" ? (Math.asin(x) * 180) / Math.PI : Math.asin(x),
+  acos: x => angleMode === "DEG" ? (Math.acos(x) * 180) / Math.PI : Math.acos(x),
+  atan: x => angleMode === "DEG" ? (Math.atan(x) * 180) / Math.PI : Math.atan(x),
+  log: x => Math.log10(x),
+  ln: x => Math.log(x),
+  sqrt: x => Math.sqrt(x),
+  abs: x => Math.abs(x)
+};
+
+/* -----------------------------
+   Expression Evaluation
+----------------------------- */
+
+function evaluateExpression() {
+  if (!expression) return;
+
+  try {
+    let exp = expression;
+
+    // 함수 치환
+    Object.keys(funcMap).forEach(fn => {
+      exp = exp.replace(
+        new RegExp(`${fn}\\(`, "g"),
+        `funcMap.${fn}(`
+      );
+    });
+
+    const result = Function("funcMap", `return ${exp}`)(funcMap);
+
+    history.push(`${expression} = ${result}`);
+    expression = String(result);
+
+    updateHistory();
+    updateDisplay();
+  } catch (e) {
+    expression = "Error";
+    updateDisplay();
+  }
+}
+
+/* -----------------------------
+   Input Handling
+----------------------------- */
+
+function appendValue(value) {
+  if (expression === "Error") expression = "";
+  expression += value;
+  updateDisplay();
+}
+
+function clearAll() {
+  expression = "";
+  updateDisplay();
+}
+
+function backspace() {
+  expression = expression.slice(0, -1);
+  updateDisplay();
+}
+
+/* -----------------------------
+   Angle Mode Toggle
+----------------------------- */
+
+angleModeEl.addEventListener("click", () => {
+  angleMode = angleMode === "DEG" ? "RAD" : "DEG";
+  angleModeEl.textContent = angleMode;
+  angleModeEl.style.color = "red";
 });
-screen.addEventListener("keydown",e=>{
- if(e.key==="Enter"){e.preventDefault();calc();}
+
+/* -----------------------------
+   Button Click Support
+----------------------------- */
+
+document.querySelectorAll("[data-key]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.key;
+
+    switch (key) {
+      case "=":
+        evaluateExpression();
+        break;
+      case "C":
+        clearAll();
+        break;
+      case "DEL":
+        backspace();
+        break;
+      default:
+        appendValue(key);
+    }
+  });
 });
 
+/* -----------------------------
+   Keyboard Support
+----------------------------- */
+
+document.addEventListener("keydown", e => {
+  const key = e.key;
+
+  if (!isNaN(key) || "+-*/().".includes(key)) {
+    appendValue(key);
+  } else if (key === "Enter") {
+    e.preventDefault();
+    evaluateExpression();
+  } else if (key === "Backspace") {
+    backspace();
+  } else if (key === "Escape") {
+    clearAll();
+  }
+});
