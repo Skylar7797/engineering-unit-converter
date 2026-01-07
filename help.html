@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Help - Engineering Workbench</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.help-question {
+  cursor: pointer;
+  padding: 10px;
+  background: #f1f1f1;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.help-answer {
+  display: none;
+  padding: 12px;
+  border-left: 3px solid #ff3b3b;
+  margin-bottom: 16px;
+  background: #fafafa;
+  line-height: 1.5;
+}
+
+.help-answer b { color: #ff3b3b; }
+.help-answer u { text-decoration: underline; }
+</style>
+
+<script>
+function toggleHelp(index) {
+  const ans = document.getElementById('help-answer-' + index);
+  ans.style.display = ans.style.display === 'block' ? 'none' : 'block';
+}
+</script>
+</head>
+
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">Engineering Workbench</div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/index.html" class="nav-link">Calculator</a>
+    <a href="/insights.html" class="nav-link">Insights</a>
+    <a href="/faq.html" class="nav-link">FAQ</a>
+    <a href="/help.html" class="nav-link active">Help</a>
+  </div>
+</nav>
+
+<main class="site-main">
+  <div class="main-layout">
+
+    <aside class="sidebar left-sidebar"></aside>
+
+    <section class="main-container">
+      <h1>Help & Support</h1>
+
+      <div class="help-list">
+
+        <!-- Question 1 -->
+        <div class="help-question" onclick="toggleHelp(1)">
+          Q1: How do I use the Unit Converter?
+        </div>
+        <div class="help-answer" id="help-answer-1">
+          <p>
+          To use the <b>Unit Converter</b>, first enter the numeric value you want to convert into the input field. Next, select the unit you are converting <u>from</u> and the unit you are converting <u>to</u> using the dropdown menus. Once your selections are made, click the <b>Convert</b> button. The result will display below, showing the converted value in the selected unit.
+          </p>
+          <p>
+          <u>Note that some conversions may require attention to decimal precision.</u> For example, converting large lengths or tiny masses can result in values with many decimal places. The converter is designed to handle a wide range of units accurately for engineering purposes.
+          </p>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="help-question" onclick="toggleHelp(2)">
+          Q2: How do I use the Scientific Calculator?
+        </div>
+        <div class="help-answer" id="help-answer-2">
+          <p>
+          The <b>Scientific Calculator</b> allows you to perform both basic arithmetic and advanced functions such as trigonometry, logarithms, and exponents. Enter numbers using the on-screen buttons or your keyboard. Use the function keys for operations like <b>sin</b>, <b>cos</b>, <b>tan</b>, <b>log</b>, and <b>ln</b>. Press the equal button "=" to get the result.
+          </p>
+          <p>
+          <u>Be aware of the angle mode indicator</u> at the top-left of the display. You can toggle between DEG (degrees) and RAD (radians) to match your calculations. Using the correct angle mode is essential for accurate trigonometric results.
+          </p>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="help-question" onclick="toggleHelp(3)">
+          Q3: How do I take notes in the Notes panel?
+        </div>
+        <div class="help-answer" id="help-answer-3">
+          <p>
+          The <b>Notes panel</b> on the right-hand side allows you to jot down important calculations, reminders, or unit conversions. Click
