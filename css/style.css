@@ -9,7 +9,7 @@ body{
 /* ================= Header (Compact) ================= */
 .site-header{
   background:linear-gradient(135deg,#111827,#1f2937);
-  padding:14px 24px;
+  padding:5px 5px;
 }
 
 .header-inner{
