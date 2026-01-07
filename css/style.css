@@ -296,8 +296,9 @@ body {
 .calc-buttons button[data-key="tan"],
 .calc-buttons button[data-key="log"],
 .calc-buttons button[data-key="ln"],
-.calc-buttons button[data-key="sqrt"],
-.calc-buttons button[data-key="^"] {
+.calc-buttons button[data-key="√"],
+.calc-buttons button[data-key="pow"],
+.calc-buttons button[data-key="x2"] {
   background: #263238;
   color: #4fc3f7;
 }
