@@ -1,5 +1,5 @@
 /* =========================================================
-   Engineering Workbench - Scientific Calculator (Final)
+   Engineering Workbench - Scientific Calculator (Complete)
    ========================================================= */
 
 const inputEl = document.getElementById("calc-input");
@@ -13,28 +13,8 @@ let shiftMode = false;
 let lastAnswer = 0;
 
 /* -----------------------------
-   Utility
------------------------------ */
-
-function updateDisplay() {
-  inputEl.value = expression || "0";
-}
-
-function updateHistory() {
-  historyEl.innerHTML = history
-    .slice(-5)
-    .map(h => `<div class="history-item">${h}</div>`)
-    .join("");
-}
-
-function toRadians(x) {
-  return angleMode === "DEG" ? (x * Math.PI) / 180 : x;
-}
-
-/* -----------------------------
    Math Function Mapping
 ----------------------------- */
-
 const funcMap = {
   sin: x => Math.sin(toRadians(x)),
   cos: x => Math.cos(toRadians(x)),
@@ -49,25 +29,47 @@ const funcMap = {
   pow: (a, b) => Math.pow(a, b)
 };
 
+function toRadians(x) {
+  return angleMode === "DEG" ? (x * Math.PI) / 180 : x;
+}
+
 /* -----------------------------
-   Expression Processing
+   Utility Functions
 ----------------------------- */
 
+function updateDisplay() {
+  inputEl.value = expression || "0";
+}
+
+function updateHistory() {
+  historyEl.innerHTML = history
+    .slice(-5)
+    .map(h => `<div class="history-item">${h}</div>`)
+    .join("");
+}
+
+/** 괄호 자동 완성: 닫히지 않은 모든 괄호를 닫아줌 */
+function autocompleteParentheses(exp) {
+  const openCount = (exp.match(/\(/g) || []).length;
+  const closeCount = (exp.match(/\)/g) || []).length;
+  const missingCount = openCount - closeCount;
+  return missingCount > 0 ? exp + ")".repeat(missingCount) : exp;
+}
+
+/** 수식 정규화: 기호를 JS Math 함수로 변환 */
 function normalizeExpression(exp) {
   if (!exp) return "";
-
   let res = exp;
-  // 1. 기호 변환
-  res = res.replace(/π/g, "Math.PI");
-  res = res.replace(/ANS/g, lastAnswer);
-  
-  // 2. ^ 연산자를 자바스크립트 거듭제곱 연산자(**)로 변환
-  res = res.replace(/\^/g, "**");
 
-  // 3. 함수명 매핑 (예: sin( -> funcMap.sin()
-  // 단어 경계(\b)를 사용하여 asin과 sin이 겹치지 않게 처리
-  const functions = Object.keys(funcMap).sort((a, b) => b.length - a.length); // 긴 이름 우선 매칭
+  // 1. 기초 상수 및 기호 치환
+  res = res.replace(/π/g, "Math.PI");
+  res = res.replace(/ANS/g, `(${lastAnswer})`);
+  res = res.replace(/\^/g, "**"); // 거듭제곱 연산자
+
+  // 2. 함수명 매핑 (긴 이름부터 매칭하여 asin이 sin으로 치환되는 것 방지)
+  const functions = Object.keys(funcMap).sort((a, b) => b.length - a.length);
   functions.forEach(fn => {
+    // 단어 경계(\b)를 사용하여 정확한 함수명만 찾아 funcMap.fn( 으로 변경
     const regex = new RegExp(`\\b${fn}\\(`, "g");
     res = res.replace(regex, `funcMap.${fn}(`);
   });
@@ -75,47 +77,39 @@ function normalizeExpression(exp) {
   return res;
 }
 
-/** 괄호 자동 완성: 여는 괄호와 닫는 괄호의 개수를 맞춰줌 */
-function autocompleteParentheses(exp) {
-  const openCount = (exp.match(/\(/g) || []).length;
-  const closeCount = (exp.match(/\)/g) || []).length;
-  const missingCount = openCount - closeCount;
-
-  if (missingCount > 0) {
-    return exp + ")".repeat(missingCount);
-  }
-  return exp;
-}
-
 /* -----------------------------
-   Evaluate Expression
+   Evaluation
 ----------------------------- */
 
 function evaluateExpression() {
   if (!expression || expression === "Error") return;
 
   try {
-    // 1. 괄호 자동 완성 적용
-    let completedExp = autocompleteParentheses(expression);
+    // 1. 괄호 보정
+    let tempExp = autocompleteParentheses(expression);
     
-    // 2. 수식 정규화
-    let finalExp = normalizeExpression(completedExp);
+    // 2. 수식 변환
+    let finalExp = normalizeExpression(tempExp);
 
-    // 3. 계산 수행
+    // 3. 계산 (Function 생성자 사용)
     const result = Function("funcMap", "Math", `return ${finalExp}`)(funcMap, Math);
 
-    // 4. 결과값 정리 (부동소수점 오차 방지)
+    // 4. 결과 검증
+    if (result === undefined || isNaN(result) || !isFinite(result)) {
+      throw new Error("Invalid Calculation");
+    }
+
+    // 5. 결과값 정리 (소수점 10자리 제한 및 불필요한 0 제거)
     const formattedResult = Number.isInteger(result) ? result : parseFloat(result.toFixed(10));
 
-    // 5. 히스토리 및 디스플레이 업데이트
-    history.push(`${completedExp} = ${formattedResult}`);
+    history.push(`${tempExp} = ${formattedResult}`);
     lastAnswer = formattedResult;
     expression = String(formattedResult);
 
     updateHistory();
     updateDisplay();
   } catch (err) {
-    console.error(err);
+    console.error("Eval Error:", err);
     expression = "Error";
     updateDisplay();
   }
@@ -126,36 +120,18 @@ function evaluateExpression() {
 ----------------------------- */
 
 function appendValue(value) {
-  if (expression === "Error") expression = "";
+  if (expression === "0" || expression === "Error") {
+    expression = "";
+  }
   expression += value;
   updateDisplay();
 }
 
-function clearAll() {
-  expression = "";
-  updateDisplay();
-}
-
-function backspace() {
-  expression = expression.slice(0, -1);
-  updateDisplay();
-}
-
 /* -----------------------------
-   Angle Mode Toggle
+   Event Listeners
 ----------------------------- */
 
-angleModeEl.addEventListener("click", () => {
-  angleMode = angleMode === "DEG" ? "RAD" : "DEG";
-  angleModeEl.textContent = angleMode;
-  // UI 피드백을 위해 색상 변경 (CSS 클래스로 관리하는 것이 더 좋음)
-  angleModeEl.style.color = angleMode === "RAD" ? "#ff4757" : "#ffffff";
-});
-
-/* -----------------------------
-   Button Click Support
------------------------------ */
-
+// 각 버튼 클릭 이벤트
 document.querySelectorAll("[data-key]").forEach(btn => {
   btn.addEventListener("click", () => {
     const key = btn.dataset.key;
@@ -165,10 +141,12 @@ document.querySelectorAll("[data-key]").forEach(btn => {
         evaluateExpression();
         break;
       case "C":
-        clearAll();
+        expression = "";
+        updateDisplay();
         break;
       case "DEL":
-        backspace();
+        expression = expression.slice(0, -1);
+        updateDisplay();
         break;
       case "SHIFT":
         shiftMode = !shiftMode;
@@ -181,17 +159,18 @@ document.querySelectorAll("[data-key]").forEach(btn => {
         shiftMode = false;
         document.querySelector('[data-key="SHIFT"]').classList.remove("active");
         break;
-      case "x2":
-        appendValue("^2");
-        break;
-      case "pow":
-        appendValue("^");
+      case "log":
+      case "ln":
+        appendValue(`${key}(`); // 괄호를 자동으로 붙여줌
         break;
       case "√":
         appendValue("sqrt(");
         break;
-      case "π":
-        appendValue("π");
+      case "pow":
+        appendValue("^");
+        break;
+      case "x2":
+        appendValue("^2");
         break;
       case "EXP":
         appendValue("*10^");
@@ -199,20 +178,25 @@ document.querySelectorAll("[data-key]").forEach(btn => {
       case "ANS":
         appendValue("ANS");
         break;
+      case "π":
+        appendValue("π");
+        break;
       default:
         appendValue(key);
     }
   });
 });
 
-/* -----------------------------
-   Keyboard Support
------------------------------ */
+// 각도 모드 변경
+angleModeEl.addEventListener("click", () => {
+  angleMode = angleMode === "DEG" ? "RAD" : "DEG";
+  angleModeEl.textContent = angleMode;
+  angleModeEl.style.color = angleMode === "RAD" ? "#ff4757" : "#ffffff";
+});
 
+// 키보드 지원
 document.addEventListener("keydown", e => {
-  // 입력 필드에 포커스가 있을 때는 기본 동작 허용
   if (document.activeElement === inputEl) return;
-
   const key = e.key;
 
   if (!isNaN(key) || "+-*/().".includes(key)) {
@@ -223,8 +207,10 @@ document.addEventListener("keydown", e => {
     e.preventDefault();
     evaluateExpression();
   } else if (key === "Backspace") {
-    backspace();
+    expression = expression.slice(0, -1);
+    updateDisplay();
   } else if (key === "Escape") {
-    clearAll();
+    expression = "";
+    updateDisplay();
   }
 });
