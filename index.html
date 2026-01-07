@@ -91,7 +91,68 @@
   
         <section class="tool-panel">
           <h2>Scientific Calculator</h2>
-          <!-- 기존 계산기 UI -->
+          <div id="calculator">
+
+          <!-- HISTORY -->
+          <div id="calc-history" class="calc-history"></div>
+        
+          <!-- DISPLAY -->
+          <div class="calc-display">
+            <input
+              type="text"
+              id="calc-input"
+              value="0"
+              readonly
+            />
+            <div id="angle-mode" class="angle-mode">DEG</div>
+          </div>
+        
+          <!-- BUTTONS -->
+          <div class="calc-buttons">
+        
+            <!-- Row 1 -->
+            <button data-key="sin">sin</button>
+            <button data-key="cos">cos</button>
+            <button data-key="tan">tan</button>
+            <button data-key="(">(</button>
+            <button data-key=")">)</button>
+        
+            <!-- Row 2 -->
+            <button data-key="log">log</button>
+            <button data-key="ln">ln</button>
+            <button data-key="sqrt">√</button>
+            <button data-key="^">^</button>
+            <button data-key="DEL">DEL</button>
+        
+            <!-- Row 3 -->
+            <button data-key="7">7</button>
+            <button data-key="8">8</button>
+            <button data-key="9">9</button>
+            <button data-key="/">÷</button>
+            <button data-key="C">C</button>
+        
+            <!-- Row 4 -->
+            <button data-key="4">4</button>
+            <button data-key="5">5</button>
+            <button data-key="6">6</button>
+            <button data-key="*">×</button>
+            <button data-key="-">−</button>
+        
+            <!-- Row 5 -->
+            <button data-key="1">1</button>
+            <button data-key="2">2</button>
+            <button data-key="3">3</button>
+            <button data-key="+">+</button>
+            <button data-key="=" class="equal">=</button>
+        
+            <!-- Row 6 -->
+            <button data-key="0" class="zero">0</button>
+            <button data-key=".">.</button>
+        
+          </div>
+        
+        </div>
+
         </section>
       </div>
   
@@ -125,10 +186,11 @@
 
 
 <script src="js/converter.js"></script>
-
+<script src="js/calculator.js"></script>
 
 </body>
 </html>
+
 
 
 
