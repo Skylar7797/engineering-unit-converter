@@ -45,10 +45,10 @@
 <main id="main-content">
   <div class="layout">
 
-    <!-- LEFT SIDE SPACE -->
+    <!-- LEFT SIDEBAR -->
     <aside class="side"></aside>
 
-    <!-- CENTER CONTENT -->
+    <!-- CENTER -->
     <div class="container">
 
       <!-- Converter & Calculator -->
@@ -136,21 +136,29 @@
         </div>
       </div>
 
-      <!-- FAQ -->
-      <div id="page-faq" class="page" style="display:none;">
-        <h2>FAQ</h2>
-        <p>Frequently asked questions will appear here.</p>
+          <div class="notes">
+            <div class="note-title">Note 1</div><textarea class="note"></textarea>
+            <div class="note-title">Note 2</div><textarea class="note"></textarea>
+            <div class="note-title">Note 3</div><textarea class="note"></textarea>
+          </div>
+        </div>
       </div>
 
-      <!-- Help -->
-      <div id="page-help" class="page" style="display:none;">
-        <h2>Help</h2>
-        <p>Help content goes here.</p>
+      <!-- Insights -->
+      <div id="page-insights" class="page" style="display:none;">
+        <h2>Insights</h2>
+        <div class="insights-list"></div>
       </div>
+
+      <!-- FAQ -->
+      <div id="page-faq" class="page" style="display:none;"></div>
+
+      <!-- Help -->
+      <div id="page-help" class="page" style="display:none;"></div>
 
     </div>
 
-    <!-- RIGHT SIDE SPACE -->
+    <!-- RIGHT SIDEBAR -->
     <aside class="side"></aside>
 
   </div>
@@ -162,9 +170,6 @@
   <a href="/contact.html">Contact</a>
 </footer>
 
-<script src="js/converter.js"></script>
-<script src="js/calculator.js"></script>
 <script src="js/spa.js" defer></script>
-
 </body>
 </html>
