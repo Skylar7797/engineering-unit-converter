@@ -10,6 +10,8 @@ const angleModeEl = document.getElementById("angle-mode");
 let expression = "";
 let history = [];
 let angleMode = "DEG"; // DEG | RAD
+let shiftMode = false;
+let lastAnswer = 0;
 
 /* -----------------------------
    Utility
@@ -38,14 +40,29 @@ const funcMap = {
   sin: x => Math.sin(toRadians(x)),
   cos: x => Math.cos(toRadians(x)),
   tan: x => Math.tan(toRadians(x)),
-  asin: x => angleMode === "DEG" ? (Math.asin(x) * 180) / Math.PI : Math.asin(x),
-  acos: x => angleMode === "DEG" ? (Math.acos(x) * 180) / Math.PI : Math.acos(x),
-  atan: x => angleMode === "DEG" ? (Math.atan(x) * 180) / Math.PI : Math.atan(x),
+
+  asin: x => angleMode === "DEG" ? Math.asin(x) * 180 / Math.PI : Math.asin(x),
+  acos: x => angleMode === "DEG" ? Math.acos(x) * 180 / Math.PI : Math.acos(x),
+  atan: x => angleMode === "DEG" ? Math.atan(x) * 180 / Math.PI : Math.atan(x),
+
   log: x => Math.log10(x),
   ln: x => Math.log(x),
   sqrt: x => Math.sqrt(x),
-  abs: x => Math.abs(x)
+  abs: x => Math.abs(x),
+  pow: (a, b) => Math.pow(a, b)
 };
+
+/* -----------------------------
+   Expression Normalization
+----------------------------- */
+
+function normalizeExpression(exp) {
+  return exp
+    .replace(/π/g, "Math.PI")
+    .replace(/ANS/g, lastAnswer)
+    .replace(/(\d+|\))\^(\d+|\()/g, "funcMap.pow($1,$2)")
+    .replace(/sqrt\(/g, "funcMap.sqrt(");
+}
 
 /* -----------------------------
    Expression Evaluation
@@ -55,9 +72,8 @@ function evaluateExpression() {
   if (!expression) return;
 
   try {
-    let exp = expression;
+    let exp = normalizeExpression(expression);
 
-    // 함수 치환
     Object.keys(funcMap).forEach(fn => {
       exp = exp.replace(
         new RegExp(`${fn}\\(`, "g"),
@@ -68,11 +84,12 @@ function evaluateExpression() {
     const result = Function("funcMap", `return ${exp}`)(funcMap);
 
     history.push(`${expression} = ${result}`);
+    lastAnswer = result;
     expression = String(result);
 
     updateHistory();
     updateDisplay();
-  } catch (e) {
+  } catch {
     expression = "Error";
     updateDisplay();
   }
@@ -120,12 +137,51 @@ document.querySelectorAll("[data-key]").forEach(btn => {
       case "=":
         evaluateExpression();
         break;
+
       case "C":
         clearAll();
         break;
+
       case "DEL":
         backspace();
         break;
+
+      case "SHIFT":
+        shiftMode = !shiftMode;
+        btn.classList.toggle("active", shiftMode);
+        break;
+
+      case "sin":
+      case "cos":
+      case "tan":
+        appendValue(shiftMode ? `a${key}(` : `${key}(`);
+        shiftMode = false;
+        break;
+
+      case "x2":
+        appendValue("^2");
+        break;
+
+      case "pow":
+        appendValue("^");
+        break;
+
+      case "√":
+        appendValue("sqrt(");
+        break;
+
+      case "π":
+        appendValue("π");
+        break;
+
+      case "EXP":
+        appendValue("e");
+        break;
+
+      case "ANS":
+        appendValue("ANS");
+        break;
+
       default:
         appendValue(key);
     }
@@ -137,10 +193,21 @@ document.querySelectorAll("[data-key]").forEach(btn => {
 ----------------------------- */
 
 document.addEventListener("keydown", e => {
+  const active = document.activeElement;
+
+  /* 다른 입력창 포커스 시 계산기 무시 */
+  if (
+    active.tagName === "INPUT" ||
+    active.tagName === "TEXTAREA" ||
+    active.tagName === "SELECT"
+  ) return;
+
   const key = e.key;
 
   if (!isNaN(key) || "+-*/().".includes(key)) {
     appendValue(key);
+  } else if (key === "^") {
+    appendValue("^");
   } else if (key === "Enter") {
     e.preventDefault();
     evaluateExpression();
