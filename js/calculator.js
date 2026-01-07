@@ -68,13 +68,17 @@ function normalizeExpression(exp) {
   // sqrt 함수
   normalized = normalized.replace(/sqrt\(/g, "funcMap.sqrt(");
 
-  // ^ 연산 처리 (가장 안쪽부터 재귀적 변환)
-  while (/\^/.test(normalized)) {
-    normalized = normalized.replace(
-      /(\([^\(\)]+\)|[0-9.]+|Math\.PI|ANS)\^(\([^\(\)]+\)|[0-9.]+|Math\.PI|ANS)/,
-      "funcMap.pow($1,$2)"
-    );
+  // ^ 연산 처리 (재귀적 변환)
+  function replacePower(s) {
+    const powerRegex = /(\([^\(\)]+\)|[0-9.]+|Math\.PI|funcMap\.\w+)\^(\([^\(\)]+\)|[0-9.]+|Math\.PI|funcMap\.\w+)/;
+    if (powerRegex.test(s)) {
+      s = s.replace(powerRegex, "funcMap.pow($1,$2)");
+      return replacePower(s); // 재귀 호출
+    }
+    return s;
   }
+
+  normalized = replacePower(normalized);
 
   return normalized;
 }
