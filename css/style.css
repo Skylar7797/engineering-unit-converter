@@ -40,20 +40,20 @@ body {
    Navigation
 ================================ */
 .site-nav {
-  height: 56px;
   width: 100%;
   background: #fafafa;
   border-bottom: 1px solid #ddd;
 }
 
 .nav-inner {
-  height: 100%;
+  height: 56px;
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
   align-items: center;
   gap: 24px;
+  flex-wrap: wrap;
 }
 
 .nav-link {
@@ -155,12 +155,12 @@ body {
 }
 
 /* ===============================
-   Conversion Area 수정
+   Conversion Area
 ================================ */
 .converter-work {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Enter Value, 단위, 버튼 간격 */
+  gap: 16px;
 }
 
 .convert-input {
@@ -169,22 +169,9 @@ body {
   align-items: center;
 }
 
-.convert-input input {
-  flex: 1;
+.convert-input input,
+.convert-input select {
   padding: 8px;
-  font-size: 14px;
-}
-
-/* 단위 선택 영역: Enter Value 아래 */
-.unit-selection {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.unit-selection select {
-  flex: 1;
-  padding: 6px;
   font-size: 14px;
 }
 
@@ -192,22 +179,11 @@ body {
   font-weight: bold;
 }
 
-/* Convert 버튼: 단위 → 단위 아래로 */
 .convert-btn {
-  margin-top: 8px;
   width: 120px;
   padding: 8px;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 4px;
-  background: #263238;
-  color: #4fc3f7;
-  border: none;
-  transition: background 0.1s;
-}
-
-.convert-btn:hover {
-  background: #37474f;
 }
 
 .convert-result {
@@ -227,8 +203,7 @@ body {
 
 /* ===============================
    Scientific Calculator
-   =============================== */
-
+================================ */
 #calculator {
   background: #1e1e1e;
   border-radius: 12px;
@@ -292,7 +267,6 @@ body {
   gap: 6px;
 }
 
-/* ===== BUTTON BASE ===== */
 .calc-buttons button {
   height: 42px;
   background: #2b2b2b;
@@ -314,7 +288,6 @@ body {
   box-shadow: inset 0 -1px 0 #000;
 }
 
-/* ===== FUNCTION KEYS ===== */
 .calc-buttons button[data-key="sin"],
 .calc-buttons button[data-key="cos"],
 .calc-buttons button[data-key="tan"],
@@ -327,7 +300,6 @@ body {
   color: #4fc3f7;
 }
 
-/* ===== OPERATOR KEYS ===== */
 .calc-buttons button[data-key="+"],
 .calc-buttons button[data-key="-"],
 .calc-buttons button[data-key="*"],
@@ -336,7 +308,6 @@ body {
   color: #ffd54f;
 }
 
-/* ===== CLEAR / DELETE ===== */
 .calc-buttons button[data-key="C"] {
   background: #5c1a1a;
   color: #ff8a80;
@@ -347,14 +318,12 @@ body {
   color: #ffcc80;
 }
 
-/* ===== EQUAL ===== */
 .calc-buttons button.equal {
   background: #00695c;
   color: #ffffff;
   font-weight: bold;
 }
 
-/* ===== ZERO KEY ===== */
 .calc-buttons button.zero {
   grid-column: span 2;
 }
@@ -385,7 +354,6 @@ body {
   font-family: inherit;
   font-size: 14px;
 }
-
 
 /* ===============================
    Sidebar
@@ -439,25 +407,59 @@ body {
 }
 
 /* ===============================
-   Insight / FAQ / HELP 페이지
-   메인페이지 구조와 동일
+   Responsive
 ================================ */
-.page-container {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 260px;
-  gap: 24px;
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    padding: 0 12px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-stack {
+    grid-template-rows: auto auto;
+  }
+
+  .converter-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .convert-input {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .convert-input input,
+  .convert-input select,
+  .convert-btn {
+    width: 100%;
+  }
+
+  .memo-panel {
+    margin-top: 24px;
+  }
 }
 
-.page-content {
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 24px;
-}
+@media (max-width: 480px) {
+  .nav-inner {
+    flex-direction: column;
+    gap: 8px;
+  }
 
-.page-sidebar {
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  min-height: 400px;
+  .nav-link {
+    font-size: 14px;
+  }
+
+  .calc-buttons button {
+    font-size: 12px;
+    height: 38px;
+  }
 }
