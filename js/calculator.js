@@ -60,8 +60,11 @@ function normalizeExpression(exp) {
   return exp
     .replace(/π/g, "Math.PI")
     .replace(/ANS/g, lastAnswer)
-    .replace(/(\d+|\))\^(\d+|\()/g, "funcMap.pow($1,$2)")
-    .replace(/sqrt\(/g, "funcMap.sqrt(");
+    .replace(/sqrt\(/g, "funcMap.sqrt(")
+    // a^b → funcMap.pow(a,b)
+    .replace(/([0-9.]+|\([^()]*\)|Math\.PI|lastAnswer)\^([0-9.]+|\([^()]*\))/g,
+      "funcMap.pow($1,$2)"
+    );
 }
 
 /* -----------------------------
@@ -175,7 +178,7 @@ document.querySelectorAll("[data-key]").forEach(btn => {
         break;
 
       case "EXP":
-        appendValue("e");
+        appendValue("10^");
         break;
 
       case "ANS":
@@ -197,9 +200,11 @@ document.addEventListener("keydown", e => {
 
   /* 다른 입력창 포커스 시 계산기 무시 */
   if (
-    active.tagName === "INPUT" ||
-    active.tagName === "TEXTAREA" ||
-    active.tagName === "SELECT"
+     active &&
+     active !== inputEl &&
+     (active.tagName === "INPUT" ||
+      active.tagName === "TEXTAREA" ||
+      active.tagName === "SELECT")
   ) return;
 
   const key = e.key;
