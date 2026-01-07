@@ -59,7 +59,38 @@
       <div class="tool-stack">
         <section class="tool-panel">
           <h2>Unit Converter</h2>
-          <!-- 기존 단위 변환기 UI -->
+          <section class="tool-panel converter">
+        
+          <div class="converter-layout">
+        
+            <!-- LEFT: PARAMETER LIST -->
+            <aside class="converter-params" id="paramList">
+              <!-- JS에서 자동 생성 -->
+            </aside>
+        
+            <!-- RIGHT: CONVERSION -->
+            <div class="converter-work">
+        
+              <div class="convert-input">
+                <input type="number" id="inputValue" placeholder="Enter value">
+                <select id="fromUnit"></select>
+                <span class="arrow">→</span>
+                <select id="toUnit"></select>
+              </div>
+        
+              <button class="convert-btn" id="convertBtn">Convert</button>
+        
+              <div class="convert-result">
+                <div class="result-label">Result</div>
+                <div class="result-value" id="resultValue">—</div>
+              </div>
+        
+            </div>
+        
+          </div>
+        
+        </section>
+
         </section>
   
         <section class="tool-panel">
@@ -96,6 +127,11 @@
   </div>
 </footer>
 
+
+<script src="js/converter.js"></script>
+
+
 </body>
 </html>
+
 
