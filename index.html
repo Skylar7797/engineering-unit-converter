@@ -67,23 +67,30 @@
             </aside>
         
             <!-- RIGHT: CONVERSION -->
-            <div class="converter-work">
-        
-              <div class="convert-input">
-                <input type="number" id="inputValue" placeholder="Enter value">
-                <select id="fromUnit"></select>
-                <span class="arrow">→</span>
-                <select id="toUnit"></select>
+              <div class="converter-work">
+
+                <!-- Enter Value -->
+                <div class="convert-input">
+                  <input type="number" id="inputValue" placeholder="Enter value">
+                </div>
+
+                <!-- Unit Selection: 단위 → 단위 -->
+                <div class="unit-selection">
+                  <select id="fromUnit"></select>
+                  <span class="arrow">→</span>
+                  <select id="toUnit"></select>
+                </div>
+
+                <!-- Convert Button -->
+                <button class="convert-btn" id="convertBtn">Convert</button>
+
+                <!-- Result -->
+                <div class="convert-result">
+                  <div class="result-label">Result</div>
+                  <div class="result-value" id="resultValue">—</div>
+                </div>
+
               </div>
-        
-              <button class="convert-btn" id="convertBtn">Convert</button>
-        
-              <div class="convert-result">
-                <div class="result-label">Result</div>
-                <div class="result-value" id="resultValue">—</div>
-              </div>
-        
-            </div>
         
           </div>
         
@@ -197,6 +204,7 @@
 
 </body>
 </html>
+
 
 
 
