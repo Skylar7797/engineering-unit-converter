@@ -60,12 +60,33 @@ nav{
 
 /* ================= Main ================= */
 main{
+  margin:60px 0;
+}
+
+/* ================= Layout Container ================= */
+.container{
   max-width:1100px;
-  margin:60px auto;
-  background:#fff;
+  margin:0 auto;
   padding:48px;
+  background:#fff;
   border-radius:16px;
   box-shadow:0 12px 40px rgba(0,0,0,.08);
+  box-sizing:border-box;
+}
+
+.page{
+  min-height:200px;
+}
+
+html{
+  overflow-y:scroll;
+}
+
+.insight-content,
+.faq-content,
+.help-content{
+  max-width:800px;
+  line-height:1.75;
 }
 
 /* ================= Unit Converter ================= */
