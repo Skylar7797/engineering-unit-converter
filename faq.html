@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FAQ - Engineering Workbench</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.faq-question {
+  cursor: pointer;
+  padding: 10px;
+  background: #f1f1f1;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.faq-answer {
+  display: none;
+  padding: 10px;
+  border-left: 3px solid #ff3b3b;
+  margin-bottom: 12px;
+  background: #fafafa;
+  line-height: 1.5;
+}
+</style>
+
+<script>
+function toggleFAQ(index) {
+  const ans = document.getElementById('faq-answer-' + index);
+  ans.style.display = ans.style.display === 'block' ? 'none' : 'block';
+}
+</script>
+</head>
+
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">Engineering Workbench</div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/index.html" class="nav-link">Calculator</a>
+    <a href="/insights.html" class="nav-link">Insights</a>
+    <a href="/faq.html" class="nav-link active">FAQ</a>
+    <a href="/help.html" class="nav-link">Help</a>
+  </div>
+</nav>
+
+<main class="site-main">
+  <div class="main-layout">
+
+    <aside class="sidebar left-sidebar"></aside>
+
+    <section class="main-container">
+      <h1>FAQ</h1>
+
+      <div class="faq-list">
+
+        <div class="faq-question" onclick="toggleFAQ(1)">
+          Q1: How do I use the Unit Converter?
+        </div>
+        <div class="faq-answer" id="faq-answer-1">
+          <p>
+          Using the Unit Converter in the Engineering Workbench is designed to be intuitive and user-friendly, allowing engineers, students, and hobbyists to quickly convert between various units of measurement without confusion. To begin, enter a numeric value into the input field at the top of the converter interface. This is the value that you wish to convert from one unit to another. Next, select the <strong>from unit</strong> in the dropdown menu to specify the current measurement system or scale your value is in, such as meters, kilograms, or degrees Celsius. Then, select the <strong>to unit</strong> from the corresponding dropdown, which represents the target unit for conversion. Once both selections are made, click the <strong>Convert</strong> button. The system will process the input according to the predefined conversion formulas, taking into account any special cases, and display the converted result in the output area below the button. This method ensures accuracy and prevents manual calculation errors that often occur when converting units by hand, especially for complex or less common units. Additionally, repeated conversions can be performed without refreshing the page, and the interface clearly highlights the input and output fields to avoid confusion, making it suitable for both learning and professional applications. By providing a seamless interaction and precise results, the Unit Converter serves as a reliable tool for all types of engineering and scientific work.
+          </p>
+        </div>
+
+        <div class="faq-question" onclick="toggleFAQ(2)">
+          Q2: What does the SHIFT button do in the calculator?
+        </div>
+        <div class="faq-answer" id="faq-answer-2">
+          <p>
+          The SHIFT button in the Scientific Calculator is a toggle function that allows users to access secondary operations of certain keys. Many scientific calculators, including this one, include buttons that perform multiple functions depending on the mode, and SHIFT serves as the key to switch between the primary and secondary functions. For example, the keys labeled “sin,” “cos,” and “tan” by default calculate the standard trigonometric sine, cosine, and tangent functions. When the SHIFT button is activated, these same keys will instead calculate their inverse counterparts, namely arcsine, arccosine, and arctangent, which are essential for solving engineering problems that involve angles and rotations. The SHIFT button also works for other keys that have multiple uses, such as logarithmic, exponential, and power functions, enabling advanced calculations without requiring additional buttons, thus saving space and improving the interface’s clarity. Once the SHIFT mode is activated, it remains active until the user presses it again or performs an operation that automatically deactivates it. The feature is particularly useful for students and professionals who need to perform both forward and inverse calculations in a rapid sequence, allowing efficient switching between mathematical operations while keeping the workflow consistent and minimizing errors.
+          </p>
+        </div>
+
+        <div class="faq-question" onclick="toggleFAQ(3)">
+          Q3: What does the ANS button mean?
+        </div>
+        <div class="faq-answer" id="faq-answer-3">
+          <p>
+          The ANS button stands for “Answer” and is a standard feature in most scientific calculators, including the Engineering Workbench calculator. Its primary purpose is to allow users to reuse the result of the most recent calculation in a new expression without manually retyping the value. This functionality is especially valuable when performing sequential calculations, where the outcome of one calculation becomes the input for the next. For example, if you first compute a complex expression such as 2^3 + 5, the result, 13, is automatically stored in the ANS memory. You can then press the ANS button in your next calculation, such as multiplying it by another number, without typing 13 again. This reduces the likelihood of input errors, speeds up calculation workflows, and enhances productivity, particularly in engineering and scientific contexts where multi-step calculations are common. The ANS feature also supports more advanced expressions that involve functions, parentheses, and mixed operations, providing seamless integration with other buttons and functions on the calculator. In essence, the ANS button is a convenient memory tool that ensures accuracy, efficiency, and ease of use when handling continuous or iterative calculations.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <aside class="sidebar right-sidebar"></aside>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a href="/about.html">About</a> | 
+    <a href="/privacy.html">Privacy Policy</a> | 
+    <a href="/contact.html">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
