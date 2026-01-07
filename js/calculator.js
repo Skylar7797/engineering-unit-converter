@@ -1,5 +1,5 @@
 /* =========================================================
-   Engineering Workbench - Scientific Calculator (Complete)
+   Engineering Workbench - Scientific Calculator (Full Version)
    ========================================================= */
 
 const inputEl = document.getElementById("calc-input");
@@ -11,6 +11,9 @@ let history = [];
 let angleMode = "DEG"; // DEG | RAD
 let shiftMode = false;
 let lastAnswer = 0;
+
+// 직접 입력을 위해 readonly 제거
+inputEl.removeAttribute("readonly");
 
 /* -----------------------------
    Math Function Mapping
@@ -38,7 +41,7 @@ function toRadians(x) {
 ----------------------------- */
 
 function updateDisplay() {
-  inputEl.value = expression || "0";
+  inputEl.value = expression; 
 }
 
 function updateHistory() {
@@ -48,7 +51,6 @@ function updateHistory() {
     .join("");
 }
 
-/** 괄호 자동 완성: 닫히지 않은 모든 괄호를 닫아줌 */
 function autocompleteParentheses(exp) {
   const openCount = (exp.match(/\(/g) || []).length;
   const closeCount = (exp.match(/\)/g) || []).length;
@@ -56,20 +58,20 @@ function autocompleteParentheses(exp) {
   return missingCount > 0 ? exp + ")".repeat(missingCount) : exp;
 }
 
-/** 수식 정규화: 기호를 JS Math 함수로 변환 */
 function normalizeExpression(exp) {
   if (!exp) return "";
   let res = exp;
 
-  // 1. 기초 상수 및 기호 치환
+  // 1. 기호 및 상수 변환 (대소문자 구분 없이 처리하기 위해 i 플래그 고려 가능)
   res = res.replace(/π/g, "Math.PI");
   res = res.replace(/ANS/g, `(${lastAnswer})`);
-  res = res.replace(/\^/g, "**"); // 거듭제곱 연산자
+  res = res.replace(/\^/g, "**");
+  res = res.replace(/÷/g, "/");
+  res = res.replace(/×/g, "*");
 
-  // 2. 함수명 매핑 (긴 이름부터 매칭하여 asin이 sin으로 치환되는 것 방지)
+  // 2. 함수 매핑
   const functions = Object.keys(funcMap).sort((a, b) => b.length - a.length);
   functions.forEach(fn => {
-    // 단어 경계(\b)를 사용하여 정확한 함수명만 찾아 funcMap.fn( 으로 변경
     const regex = new RegExp(`\\b${fn}\\(`, "g");
     res = res.replace(regex, `funcMap.${fn}(`);
   });
@@ -85,53 +87,48 @@ function evaluateExpression() {
   if (!expression || expression === "Error") return;
 
   try {
-    // 1. 괄호 보정
-    let tempExp = autocompleteParentheses(expression);
-    
-    // 2. 수식 변환
-    let finalExp = normalizeExpression(tempExp);
+    let rawExp = expression;
+    rawExp = autocompleteParentheses(rawExp);
+    const finalExp = normalizeExpression(rawExp);
 
-    // 3. 계산 (Function 생성자 사용)
     const result = Function("funcMap", "Math", `return ${finalExp}`)(funcMap, Math);
 
-    // 4. 결과 검증
     if (result === undefined || isNaN(result) || !isFinite(result)) {
-      throw new Error("Invalid Calculation");
+      throw new Error("Invalid Output");
     }
 
-    // 5. 결과값 정리 (소수점 10자리 제한 및 불필요한 0 제거)
     const formattedResult = Number.isInteger(result) ? result : parseFloat(result.toFixed(10));
 
-    history.push(`${tempExp} = ${formattedResult}`);
+    history.push(`${rawExp} = ${formattedResult}`);
     lastAnswer = formattedResult;
     expression = String(formattedResult);
 
     updateHistory();
     updateDisplay();
   } catch (err) {
-    console.error("Eval Error:", err);
+    console.error("Calc Error:", err);
     expression = "Error";
     updateDisplay();
   }
 }
 
 /* -----------------------------
-   Input Handling
+   Event Listeners
 ----------------------------- */
 
+// [A] 입력창 직접 타이핑 동기화
+inputEl.addEventListener("input", (e) => {
+  expression = e.target.value;
+});
+
+// [B] 버튼 클릭 처리
 function appendValue(value) {
-  if (expression === "0" || expression === "Error") {
-    expression = "";
-  }
+  // 에러 상태거나 0일 때 새로 입력하면 비워줌
+  if (expression === "0" || expression === "Error") expression = "";
   expression += value;
   updateDisplay();
 }
 
-/* -----------------------------
-   Event Listeners
------------------------------ */
-
-// 각 버튼 클릭 이벤트
 document.querySelectorAll("[data-key]").forEach(btn => {
   btn.addEventListener("click", () => {
     const key = btn.dataset.key;
@@ -145,7 +142,7 @@ document.querySelectorAll("[data-key]").forEach(btn => {
         updateDisplay();
         break;
       case "DEL":
-        expression = expression.slice(0, -1);
+        expression = String(expression).slice(0, -1);
         updateDisplay();
         break;
       case "SHIFT":
@@ -157,11 +154,12 @@ document.querySelectorAll("[data-key]").forEach(btn => {
       case "tan":
         appendValue(shiftMode ? `a${key}(` : `${key}(`);
         shiftMode = false;
-        document.querySelector('[data-key="SHIFT"]').classList.remove("active");
+        const shiftBtn = document.querySelector('[data-key="SHIFT"]');
+        if (shiftBtn) shiftBtn.classList.remove("active");
         break;
       case "log":
       case "ln":
-        appendValue(`${key}(`); // 괄호를 자동으로 붙여줌
+        appendValue(`${key}(`);
         break;
       case "√":
         appendValue("sqrt(");
@@ -187,30 +185,33 @@ document.querySelectorAll("[data-key]").forEach(btn => {
   });
 });
 
-// 각도 모드 변경
+// [C] 각도 모드 변경
 angleModeEl.addEventListener("click", () => {
   angleMode = angleMode === "DEG" ? "RAD" : "DEG";
   angleModeEl.textContent = angleMode;
   angleModeEl.style.color = angleMode === "RAD" ? "#ff4757" : "#ffffff";
 });
 
-// 키보드 지원
-document.addEventListener("keydown", e => {
-  if (document.activeElement === inputEl) return;
-  const key = e.key;
-
-  if (!isNaN(key) || "+-*/().".includes(key)) {
-    appendValue(key);
-  } else if (key === "^") {
-    appendValue("^");
-  } else if (key === "Enter") {
+// [D] 키보드 단축키 처리
+document.addEventListener("keydown", (e) => {
+  // Enter 키는 어디서든 계산 실행
+  if (e.key === "Enter") {
     e.preventDefault();
     evaluateExpression();
-  } else if (key === "Backspace") {
-    expression = expression.slice(0, -1);
-    updateDisplay();
-  } else if (key === "Escape") {
+  } 
+  // ESC 키는 초기화
+  else if (e.key === "Escape") {
     expression = "";
     updateDisplay();
+  }
+  
+  // 만약 입력창에 포커스가 없다면, 숫자나 연산자 키를 눌렀을 때 입력창으로 값 전달
+  if (document.activeElement !== inputEl) {
+    if (!isNaN(e.key) || "+-*/().^".includes(e.key)) {
+      appendValue(e.key);
+    } else if (e.key === "Backspace") {
+      expression = String(expression).slice(0, -1);
+      updateDisplay();
+    }
   }
 });
