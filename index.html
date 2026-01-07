@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
 <script>
@@ -10,7 +8,7 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-1VBV3J3DVG');
-
+  
   function trackPage(path, title) {
     gtag('event', 'page_view', {
       page_path: path,
@@ -18,151 +16,65 @@
     });
   }
 </script>
-
-<title>Engineering Calculator & Unit Converter</title>
+<meta charset="UTF-8">
+<title>Engineering Workbench</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link rel="stylesheet" href="css/style.css">
 </head>
 
+  
 <body>
-
+  
+<!-- HEADER -->
 <header class="site-header">
   <div class="header-inner">
     <div class="logo">Engineering Workbench</div>
   </div>
 </header>
 
-<nav>
+<!-- NAV -->
+<nav class="site-nav">
   <div class="nav-inner">
-    <a href="#" class="nav-link active" data-page="converter">Converter & Calculator</a>
-    <a href="#" class="nav-link" data-page="insights">Insights</a>
-    <a href="#" class="nav-link" data-page="faq">FAQ</a>
-    <a href="#" class="nav-link" data-page="help">Help</a>
+    <a href="/index.html" class="nav-link active">Calculator</a>
+    <a href="/insights.html" class="nav-link">Insights</a>
+    <a href="/faq.html" class="nav-link">FAQ</a>
+    <a href="/help.html" class="nav-link">Help</a>
   </div>
 </nav>
 
-<main id="main-content">
-  <div class="layout">
+<!-- MAIN -->
+<main class="site-main">
+  <div class="main-layout">
 
     <!-- LEFT SIDEBAR -->
-    <aside class="side"></aside>
+    <aside class="sidebar left-sidebar">
+      <!-- optional widgets -->
+    </aside>
 
-    <!-- CENTER -->
-    <div class="container">
-
-      <!-- Converter & Calculator -->
-      <div id="page-converter" class="page">
-        <h2>Unit Converter</h2>
-
-        <div class="converter-grid">
-          <div class="converter-box">
-            <select id="dimA"></select>
-            <div class="row">
-              <input type="number" id="valA">
-              <select id="fromA"></select>
-              <div class="arrow">→</div>
-              <select id="toA"></select>
-            </div>
-            <button onclick="convert('A')">Convert</button>
-            <div class="result" id="outA"></div>
-          </div>
-
-          <div class="converter-box">
-            <select id="dimB"></select>
-            <div class="row">
-              <input type="number" id="valB">
-              <select id="fromB"></select>
-              <div class="arrow">→</div>
-              <select id="toB"></select>
-            </div>
-            <button onclick="convert('B')">Convert</button>
-            <div class="result" id="outB"></div>
-          </div>
-        </div>
-
-        <h2>Scientific Calculator</h2>
-
-        <div class="calc-layout">
-          <div class="calc-box">
-            <div class="history" id="history"></div>
-            <input class="calc-screen" id="screen" type="text">
-            <div class="angle-mode" id="angleMode">Angle Mode: RAD</div>
-            <div class="latest" id="latest">Latest: —</div>
-
-            <div class="keys">
-              <button class="key func" onclick="toggleAngle()">RAD / DEG</button>
-              <button class="key func" onclick="addFn('sin')">sin</button>
-              <button class="key func" onclick="addFn('cos')">cos</button>
-              <button class="key func" onclick="addFn('tan')">tan</button>
-              <button class="key func" onclick="addFn('log')">log</button>
-
-              <button class="key func" onclick="sqrt()">√</button>
-              <button class="key func" onclick="reciprocal()">1/x</button>
-              <button class="key func" onclick="toggleSign()">±</button>
-              <button class="key op" onclick="power()">xʸ</button>
-              <button class="key func" onclick="addFn('ln')">ln</button>
-
-              <button class="key" onclick="add('7')">7</button>
-              <button class="key" onclick="add('8')">8</button>
-              <button class="key" onclick="add('9')">9</button>
-              <button class="key op" onclick="addOp('/')">÷</button>
-              <button class="key func" onclick="addConst('pi')">π</button>
-
-              <button class="key" onclick="add('4')">4</button>
-              <button class="key" onclick="add('5')">5</button>
-              <button class="key" onclick="add('6')">6</button>
-              <button class="key op" onclick="addOp('*')">×</button>
-              <button class="key func" onclick="addConst('e')">e</button>
-
-              <button class="key" onclick="add('1')">1</button>
-              <button class="key" onclick="add('2')">2</button>
-              <button class="key" onclick="add('3')">3</button>
-              <button class="key op" onclick="addOp('-')">−</button>
-              <button class="key func" onclick="clearAll()">AC</button>
-
-              <button class="key" onclick="add('0')">0</button>
-              <button class="key" onclick="add('.')">.</button>
-              <button class="key op" onclick="addOp('+')">+</button>
-              <button class="key equal" onclick="calc()">=</button>
-            </div>
-          </div>
-
-          <div class="notes">
-            <div class="note-title">Note 1</div><textarea class="note"></textarea>
-            <div class="note-title">Note 2</div><textarea class="note"></textarea>
-            <div class="note-title">Note 3</div><textarea class="note"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Insights -->
-      <div id="page-insights" class="page" style="display:none;">
-        <h2>Insights</h2>
-        <div class="insights-list"></div>
-      </div>
-
-      <!-- FAQ -->
-      <div id="page-faq" class="page" style="display:none;"></div>
-
-      <!-- Help -->
-      <div id="page-help" class="page" style="display:none;"></div>
-
-    </div>
+    <!-- CENTER CONTENT -->
+    <section class="main-container">
+      <h1>Engineering Calculator & Unit Converter</h1>
+      <!-- 기존 Converter / Calculator 코드 여기에 삽입 -->
+    </section>
 
     <!-- RIGHT SIDEBAR -->
-    <aside class="side"></aside>
+    <aside class="sidebar right-sidebar">
+      <!-- optional widgets -->
+    </aside>
 
   </div>
 </main>
 
-<footer>
-  <a href="/about.html">About</a> |
-  <a href="/privacy.html">Privacy Policy</a> |
-  <a href="/contact.html">Contact</a>
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a href="/about.html">About</a>
+    <span>|</span>
+    <a href="/privacy.html">Privacy Policy</a>
+    <span>|</span>
+    <a href="/contact.html">Contact</a>
+  </div>
 </footer>
 
-<script src="js/spa.js" defer></script>
 </body>
 </html>
-
