@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1VBV3J3DVG');
+  
+  function trackPage(path, title) {
+    gtag('event', 'page_view', {
+      page_path: path,
+      page_title: title
+    });
+  }
+</script>
 <meta charset="UTF-8">
 <title>Insights - Engineering Workbench</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
