@@ -1,6 +1,6 @@
 /* =========================================================
    Engineering Workbench - Scientific Calculator
-   calculator.js (최종 안정판)
+   Final JS
    ========================================================= */
 
 const inputEl = document.getElementById("calc-input");
@@ -53,37 +53,34 @@ const funcMap = {
 };
 
 /* -----------------------------
-   Power Operator 처리
------------------------------ */
-
-function replacePowerOperators(exp) {
-  // 오른쪽부터 하나씩 ^ 처리
-  while (exp.includes("^")) {
-    exp = exp.replace(
-      /(\([^()]+\)|Math\.PI|\d+\.?\d*|ANS)\^(\([^()]+\)|Math\.PI|\d+\.?\d*|ANS)/,
-      "funcMap.pow($1,$2)"
-    );
-  }
-  return exp;
-}
-
-/* -----------------------------
-   Expression Normalization
+   Normalize Expression
 ----------------------------- */
 
 function normalizeExpression(exp) {
-  exp = exp
-    .replace(/π/g, "Math.PI")
-    .replace(/ANS/g, lastAnswer)
-    .replace(/sqrt\(/g, "funcMap.sqrt(");
+  if (!exp) return "";
 
-  exp = replacePowerOperators(exp);
+  let normalized = exp;
 
-  return exp;
+  // 상수
+  normalized = normalized.replace(/π/g, "Math.PI");
+  normalized = normalized.replace(/ANS/g, lastAnswer);
+
+  // sqrt 함수
+  normalized = normalized.replace(/sqrt\(/g, "funcMap.sqrt(");
+
+  // ^ 연산 처리 (가장 안쪽부터 재귀적 변환)
+  while (/\^/.test(normalized)) {
+    normalized = normalized.replace(
+      /(\([^\(\)]+\)|[0-9.]+|Math\.PI|ANS)\^(\([^\(\)]+\)|[0-9.]+|Math\.PI|ANS)/,
+      "funcMap.pow($1,$2)"
+    );
+  }
+
+  return normalized;
 }
 
 /* -----------------------------
-   Expression Evaluation
+   Evaluate Expression
 ----------------------------- */
 
 function evaluateExpression() {
@@ -92,10 +89,11 @@ function evaluateExpression() {
   try {
     let exp = normalizeExpression(expression);
 
+    // 함수 매핑 적용
     Object.keys(funcMap).forEach(fn => {
       exp = exp.replace(
-        new RegExp(`${fn}\\(`, "g"),
-        `funcMap.${fn}(`
+        new RegExp(`\\b${fn}\\(`, "g"),
+        `funcMap.${fn}(`,
       );
     });
 
@@ -155,51 +153,40 @@ document.querySelectorAll("[data-key]").forEach(btn => {
       case "=":
         evaluateExpression();
         break;
-
       case "C":
         clearAll();
         break;
-
       case "DEL":
         backspace();
         break;
-
       case "SHIFT":
         shiftMode = !shiftMode;
         btn.classList.toggle("active", shiftMode);
         break;
-
       case "sin":
       case "cos":
       case "tan":
         appendValue(shiftMode ? `a${key}(` : `${key}(`);
         shiftMode = false;
         break;
-
       case "x2":
         appendValue("^2");
         break;
-
       case "pow":
         appendValue("^");
         break;
-
       case "√":
         appendValue("sqrt(");
         break;
-
       case "π":
         appendValue("π");
         break;
-
       case "EXP":
         appendValue("10^");
         break;
-
       case "ANS":
         appendValue("ANS");
         break;
-
       default:
         appendValue(key);
     }
@@ -212,28 +199,14 @@ document.querySelectorAll("[data-key]").forEach(btn => {
 
 document.addEventListener("keydown", e => {
   const active = document.activeElement;
-
-  // 다른 입력창 포커스 시 계산기 무시
-  if (
-     active &&
-     active !== inputEl &&
-     (active.tagName === "INPUT" ||
-      active.tagName === "TEXTAREA" ||
-      active.tagName === "SELECT")
-  ) return;
+  if (active && active !== inputEl &&
+      (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT")) return;
 
   const key = e.key;
 
-  if (!isNaN(key) || "+-*/().".includes(key)) {
-    appendValue(key);
-  } else if (key === "^") {
-    appendValue("^");
-  } else if (key === "Enter") {
-    e.preventDefault();
-    evaluateExpression();
-  } else if (key === "Backspace") {
-    backspace();
-  } else if (key === "Escape") {
-    clearAll();
-  }
+  if (!isNaN(key) || "+-*/().".includes(key)) appendValue(key);
+  else if (key === "^") appendValue("^");
+  else if (key === "Enter") { e.preventDefault(); evaluateExpression(); }
+  else if (key === "Backspace") backspace();
+  else if (key === "Escape") clearAll();
 });
