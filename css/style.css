@@ -167,26 +167,16 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
-  /* 핵심 1: 공간이 부족하면 아래로 떨어지게 함 */
-  flex-wrap: wrap; 
-  width: 100%;
 }
 
 .convert-input input,
 .convert-input select {
   padding: 8px;
   font-size: 14px;
-  /* 핵심 2: 각 요소가 부모 너비를 절대 넘지 못하게 함 */
-  max-width: 100%; 
-  /* 핵심 3: 요소들이 유연하게 크기를 조절하도록 함 */
-  flex: 1 1 auto; 
-  min-width: 80px; /* 최소 크기 확보 */
 }
 
-/* 화살표는 크기가 변하지 않도록 고정 */
 .arrow {
   font-weight: bold;
-  flex-shrink: 0;
 }
 
 .convert-btn {
