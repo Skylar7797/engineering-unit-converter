@@ -1,6 +1,6 @@
 /* =========================================================
    Engineering Workbench - Scientific Calculator
-   calculator.js
+   calculator.js (최종 안정판)
    ========================================================= */
 
 const inputEl = document.getElementById("calc-input");
@@ -53,18 +53,33 @@ const funcMap = {
 };
 
 /* -----------------------------
+   Power Operator 처리
+----------------------------- */
+
+function replacePowerOperators(exp) {
+  // 오른쪽부터 하나씩 ^ 처리
+  while (exp.includes("^")) {
+    exp = exp.replace(
+      /(\([^()]+\)|Math\.PI|\d+\.?\d*|ANS)\^(\([^()]+\)|Math\.PI|\d+\.?\d*|ANS)/,
+      "funcMap.pow($1,$2)"
+    );
+  }
+  return exp;
+}
+
+/* -----------------------------
    Expression Normalization
 ----------------------------- */
 
 function normalizeExpression(exp) {
-  return exp
+  exp = exp
     .replace(/π/g, "Math.PI")
     .replace(/ANS/g, lastAnswer)
-    .replace(/sqrt\(/g, "funcMap.sqrt(")
-    // a^b → funcMap.pow(a,b)
-    .replace(/([0-9.]+|\([^()]*\)|Math\.PI|lastAnswer)\^([0-9.]+|\([^()]*\))/g,
-      "funcMap.pow($1,$2)"
-    );
+    .replace(/sqrt\(/g, "funcMap.sqrt(");
+
+  exp = replacePowerOperators(exp);
+
+  return exp;
 }
 
 /* -----------------------------
@@ -198,7 +213,7 @@ document.querySelectorAll("[data-key]").forEach(btn => {
 document.addEventListener("keydown", e => {
   const active = document.activeElement;
 
-  /* 다른 입력창 포커스 시 계산기 무시 */
+  // 다른 입력창 포커스 시 계산기 무시
   if (
      active &&
      active !== inputEl &&
