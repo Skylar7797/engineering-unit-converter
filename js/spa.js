@@ -37,6 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // === INSIGHTS ===
   const insightsList = document.querySelector('#page-insights .insights-list');
+  if (insightsList) {
+    insights.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'insight-item';
+      div.innerHTML =
+        `<h3>${item.title}</h3>
+         <div class="insight-content">${item.content}</div>`;
+      insightsList.appendChild(div);
+    });
+  }
+  
   const insights = [
 
   { 
