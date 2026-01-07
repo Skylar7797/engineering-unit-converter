@@ -155,12 +155,12 @@ body {
 }
 
 /* ===============================
-   Conversion Area
+   Conversion Area 수정
 ================================ */
 .converter-work {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px; /* Enter Value, 단위, 버튼 간격 */
 }
 
 .convert-input {
@@ -169,9 +169,22 @@ body {
   align-items: center;
 }
 
-.convert-input input,
-.convert-input select {
+.convert-input input {
+  flex: 1;
   padding: 8px;
+  font-size: 14px;
+}
+
+/* 단위 선택 영역: Enter Value 아래 */
+.unit-selection {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.unit-selection select {
+  flex: 1;
+  padding: 6px;
   font-size: 14px;
 }
 
@@ -179,11 +192,22 @@ body {
   font-weight: bold;
 }
 
+/* Convert 버튼: 단위 → 단위 아래로 */
 .convert-btn {
+  margin-top: 8px;
   width: 120px;
   padding: 8px;
   font-weight: 600;
   cursor: pointer;
+  border-radius: 4px;
+  background: #263238;
+  color: #4fc3f7;
+  border: none;
+  transition: background 0.1s;
+}
+
+.convert-btn:hover {
+  background: #37474f;
 }
 
 .convert-result {
@@ -412,4 +436,28 @@ body {
 .site-footer a {
   text-decoration: none;
   color: #444;
+}
+
+/* ===============================
+   Insight / FAQ / HELP 페이지
+   메인페이지 구조와 동일
+================================ */
+.page-container {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
+  gap: 24px;
+}
+
+.page-content {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.page-sidebar {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  min-height: 400px;
 }
