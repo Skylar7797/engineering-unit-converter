@@ -88,26 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
     title: "The Role of SI in Global Engineering", 
     content: `The International System of Units (SI) provides a coherent and comprehensive framework used by engineers and scientists worldwide. This <span style="color:red;">global interoperability</span> minimizes miscommunication, reduces errors, and ensures compatibility across international projects. Covering seven base units, SI supports disciplines ranging from classical mechanics to cutting-edge nanotechnology. Its universal adoption underscores the idea that shared standards are essential for innovation, safety, and progress in an increasingly interconnected world.` 
   },
-
-  {
-    title: "When Units Go Wrong: Engineering Failures",
-    content: `History provides numerous examples where incorrect unit usage led to catastrophic failures. One famous case is NASA’s Mars Climate Orbiter, which was lost due to a mismatch between metric and imperial units. Such incidents demonstrate that unit consistency is not a trivial concern but a critical requirement for engineering success. These failures highlight the importance of <span style="color:red;">rigorous unit management</span>, thorough verification, and standardized systems. By studying these mistakes, engineers learn that precise unit conversion and adherence to standards are essential safeguards against costly and sometimes dangerous outcomes.`
-  },
-
-  {
-    title: "Units in Semiconductor Manufacturing",
-    content: `Semiconductor manufacturing relies on extremely precise units such as nanometers, micrometers, parts per million (ppm), and Torr. As feature sizes shrink, even minor deviations can lead to significant yield losses. Accurate measurement of thickness, pressure, and chemical concentration is vital to maintaining process stability. This environment illustrates how <span style="color:red;">unit precision directly affects product performance</span>. The semiconductor industry exemplifies the real-world importance of standardized units in high-technology manufacturing and underscores why precise metrology is indispensable in modern engineering.`
-  },
-
-  {
-    title: "Why Unit Conversion Accuracy Matters",
-    content: `Unit conversion errors can introduce hidden risks into calculations, designs, and real-world implementations. Manual conversions are particularly vulnerable to mistakes, especially when dealing with complex or unfamiliar units. Automated tools and converters help mitigate these risks by ensuring consistency and accuracy. The need for reliable conversion highlights the value of <span style="color:red;">digital calculation tools</span> in engineering workflows. Accurate conversion is not merely a convenience; it is a fundamental requirement for safety, efficiency, and correctness in technical fields.`
-  },
-
-  {
-    title: "Accuracy, Precision, and Measurement Uncertainty",
-    content: `In engineering and science, accuracy and precision represent distinct concepts. Accuracy describes how close a measurement is to the true value, while precision reflects the consistency of repeated measurements. Understanding measurement uncertainty is essential for interpreting results and making informed decisions. Engineers must account for tolerances and error margins to ensure reliable designs. Recognizing the difference between these concepts reinforces the importance of <span style="color:red;">quantitative rigor</span> and demonstrates that measurement is as much about understanding limitations as it is about obtaining values.`
-  },
     
   {
     title: "When Units Go Wrong: Engineering Failures",
