@@ -32,7 +32,6 @@
 <h1>Graph Analytic</h1>
 
 <section class="tool-panel">
-
 <h2>Function Plotter</h2>
 
 <!-- Cursor Mode -->
@@ -43,14 +42,13 @@
 
 <!-- Axis Scale -->
 <div style="display:flex; gap:12px; margin-top:10px;">
-  <label>X-axis:
+  <label>X-axis
     <select id="xScale">
       <option value="linear">Linear</option>
       <option value="log">Log</option>
     </select>
   </label>
-
-  <label>Y-axis:
+  <label>Y-axis
     <select id="yScale">
       <option value="linear">Linear</option>
       <option value="log">Log</option>
@@ -60,7 +58,7 @@
 
 <!-- Function Input -->
 <div class="convert-input" style="margin-top:12px;">
-  <input type="text" id="functionInput"
+  <input id="functionInput" type="text"
     placeholder="e.g. sin(x), x^2-4, exp(-x)" />
   <button id="plotBtn" class="convert-btn">Plot</button>
 </div>
@@ -68,28 +66,38 @@
 <!-- Preset Functions -->
 <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
   <button class="convert-btn preset" data-fn="exp(-x^2)">Gaussian</button>
-  <button class="convert-btn preset" data-fn="sin(x)">Wave</button>
+  <button class="convert-btn preset" data-fn="sin(x)">Sine</button>
   <button class="convert-btn preset" data-fn="sin(x)/x">Sinc</button>
   <button class="convert-btn preset" data-fn="exp(-x)*cos(2*x)">Damped</button>
 </div>
 
-<canvas
-  id="graphCanvas"
-  width="900"
-  height="450"
+<canvas id="graphCanvas" width="900" height="450"
   style="margin-top:16px; width:100%; background:#f8fbff;">
 </canvas>
-
 </section>
 
 <section class="tool-panel" style="margin-top:24px;">
 <h2>Analysis</h2>
-<div id="analysisOutput" class="result-label">Awaiting input</div>
+<div id="analysisOutput" class="result-label">Awaiting input.</div>
 </section>
 
 </section>
+  <aside class="sidebar right-sidebar"></aside>
 </div>
 </main>
+  
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a href="/about.html">About</a>
+    <span>|</span>
+    <a href="/privacy.html">Privacy Policy</a>
+    <span>|</span>
+    <a href="/contact.html">Contact</a>
+    <span style="margin-left:auto; opacity:0.8;">
+      © 2026 Engineering Workbench
+    </span>
+  </div>
+</footer>
 
 <script src="js/graph.js"></script>
 </body>
