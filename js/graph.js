@@ -1,5 +1,5 @@
 /* ===============================
-   Graph Analytic - Final (Corrected)
+   Graph Analytic - Final (Tri Functions Fixed)
 ================================ */
 
 const canvas = document.getElementById("graphCanvas");
@@ -16,7 +16,7 @@ const presetButtons = document.querySelectorAll(".preset");
    State
 ================================ */
 let functions = [];
-let scale = 60; // 기본 확대 정도
+let scale = 60; 
 let origin = { x: canvas.width / 2, y: canvas.height / 2 };
 let mouse = { x: null, y: null };
 let cursorMode = "follow";
@@ -32,6 +32,9 @@ function parseFunction(expr) {
     .replace(/sin/g, "Math.sin")
     .replace(/cos/g, "Math.cos")
     .replace(/tan/g, "Math.tan")
+    .replace(/cot/g, "x=>1/Math.tan(x)")
+    .replace(/sec/g, "x=>1/Math.cos(x)")
+    .replace(/csc/g, "x=>1/Math.sin(x)")
     .replace(/log/g, "Math.log10")
     .replace(/ln/g, "Math.log")
     .replace(/exp/g, "Math.exp")
@@ -69,6 +72,13 @@ const toMath = (x, y) => {
     y: axisScale.y === "log" ? Math.pow(10, my) : my
   };
 };
+
+/* ===============================
+   Detect Tri Functions
+================================ */
+function isTriFunction(fn) {
+  return /sin|cos|tan|cot|sec|csc/.test(fn.expr);
+}
 
 /* ===============================
    Grid & Axes
@@ -128,21 +138,25 @@ function drawGrid() {
   ctx.textBaseline = "top";
   const nLeft = Math.floor(origin.x / scale);
   const nRight = Math.floor((canvas.width - origin.x) / scale);
+
   for (let i = -nLeft; i <= nRight; i++) {
     if (i === 0) continue;
     const xPos = origin.x + i * scale;
     let label = i;
 
-    if (functions.some(f => /sin|cos/.test(f.expr))) {
-      label = (i / 2 === 1) ? "π/2" :
-              (i / 2 === 2) ? "π" :
-              (i / 2 === 3) ? "3π/2" :
-              (i / 2 === 4) ? "2π" :
-              (i / 2 === -1) ? "-π/2" :
-              (i / 2 === -2) ? "-π" :
-              (i / 2 === -3) ? "-3π/2" :
-              (i / 2 === -4) ? "-2π" :
-              (i / 2) + "π";
+    if (functions.some(isTriFunction)) {
+      const numerator = i;
+      const denominator = 2; // π/2 단위
+      if (numerator === 0) label = "0";
+      else if (numerator === denominator) label = "π/2";
+      else if (numerator === denominator * 2) label = "π";
+      else if (numerator === denominator * 3) label = "3π/2";
+      else if (numerator === denominator * 4) label = "2π";
+      else if (numerator === -denominator) label = "-π/2";
+      else if (numerator === -denominator * 2) label = "-π";
+      else if (numerator === -denominator * 3) label = "-3π/2";
+      else if (numerator === -denominator * 4) label = "-2π";
+      else label = `${numerator / 2}π`;
     }
 
     ctx.fillText(label, xPos, origin.y + 4);
@@ -228,14 +242,12 @@ function markIntercepts(fn) {
 function drawCursor() {
   if (!mouse.x) return;
 
-  const m = toMath(mouse.x, mouse.y);
+  let m = toMath(mouse.x, mouse.y);
   let cx = m.x;
   let cy = m.y;
 
   if (cursorMode === "follow" && functions[0]) {
-    try {
-      cy = functions[0].func(cx);
-    } catch {}
+    try { cy = functions[0].func(cx); } catch {}
   }
 
   const p = toCanvas(cx, cy);
@@ -263,44 +275,47 @@ function drawCursor() {
   ctx.lineWidth = 1;
   const boxX = p.x + 12;
   const boxY = p.y - 48;
-  const boxW = 190;
-  const boxH = 42 + functions.length * 14;
+  const boxW = 220;
+  const boxH = 50 + functions.length * 18;
   ctx.fillRect(boxX, boxY, boxW, boxH);
   ctx.strokeRect(boxX, boxY, boxW, boxH);
 
   ctx.fillStyle = "#000";
   ctx.font = "12px system-ui";
   let textY = boxY + 14;
-  ctx.fillText(`x = ${cx.toFixed(4)}`, boxX + 8, textY);
-  textY += 14;
 
   functions.forEach((fn, i) => {
     try {
       const fy = cursorMode === "follow" ? fn.func(cx) : cy;
       let slope = NaN;
-      if (cursorMode === "follow") {
-        slope = (fn.func(cx + 1e-4) - fn.func(cx - 1e-4)) / 2e-4;
+      if (cursorMode === "follow") slope = (fn.func(cx + 1e-4) - fn.func(cx - 1e-4)) / 2e-4;
+
+      let xDisplay = cx.toFixed(4);
+      if (isTriFunction(fn)) {
+        xDisplay = `${(cx).toFixed(4)} rad / ${(cx * 180 / Math.PI).toFixed(2)}°`;
       }
+
       ctx.fillStyle = colors[i];
       ctx.fillText(
-        `f${i + 1}(x)=${fy.toFixed(4)}${cursorMode === "follow" ? ", dy/dx=" + slope.toFixed(4) : ""}`,
-        boxX + 8,
-        textY
+        `f${i + 1}: x=${xDisplay}, y=${fy.toFixed(4)}${cursorMode==="follow"? ", dy/dx=" + slope.toFixed(4) : ""}`,
+        boxX + 8, textY
       );
-      textY += 14;
+      textY += 18;
     } catch {}
   });
 
   // HTML panel update
-  let html = `<strong>Cursor</strong><br>x=${cx.toFixed(4)}<br>`;
+  let html = `<strong>Cursor</strong><br>`;
   functions.forEach((fn, i) => {
     try {
       const fy = cursorMode === "follow" ? fn.func(cx) : cy;
       let slope = NaN;
       if (cursorMode === "follow") slope = (fn.func(cx + 1e-3) - fn.func(cx - 1e-3)) / 2e-3;
-      html += `<span style="color:${colors[i]}">f${i + 1}(x)=${fy.toFixed(
-        4
-      )}${cursorMode === "follow" ? ", slope=" + slope.toFixed(4) : ""}</span><br>`;
+
+      let xDisplay = cx.toFixed(4);
+      if (isTriFunction(fn)) xDisplay = `${(cx).toFixed(4)} rad / ${(cx*180/Math.PI).toFixed(2)}°`;
+
+      html += `<span style="color:${colors[i]}">f${i+1}: x=${xDisplay}, y=${fy.toFixed(4)}${cursorMode==="follow"? ", dy/dx=" + slope.toFixed(4) : ""}</span><br>`;
     } catch {}
   });
   html += `<em>Scale: ${scale.toFixed(1)} px/unit</em>`;
@@ -325,31 +340,17 @@ canvas.addEventListener("mousemove", e => {
   mouse.y = e.clientY - r.top;
   render();
 });
-canvas.addEventListener("mouseleave", () => {
-  mouse.x = mouse.y = null;
-  render();
-});
-canvas.addEventListener("wheel", e => {
-  e.preventDefault();
-  scale *= e.deltaY < 0 ? 1.1 : 0.9;
-  render();
-});
+canvas.addEventListener("mouseleave", () => { mouse.x = mouse.y = null; render(); });
+canvas.addEventListener("wheel", e => { e.preventDefault(); scale *= e.deltaY < 0 ? 1.1 : 0.9; render(); });
 plotBtn.addEventListener("click", () => {
   const exprs = functionInput.value.split(",").slice(0, 3);
-  functions = exprs.map(e => ({ expr: e.trim(), func: parseFunction(e.trim()) }));
+  functions = exprs.map(e => ({ expr:e.trim(), func: parseFunction(e.trim()) }));
   render();
 });
-modeInputs.forEach(radio => {
-  radio.addEventListener("change", e => {
-    cursorMode = e.target.value;
-    render();
-  });
-});
+modeInputs.forEach(radio => { radio.addEventListener("change", e => { cursorMode = e.target.value; render(); }); });
 xScaleSelect.addEventListener("change", () => { axisScale.x = xScaleSelect.value; render(); });
 yScaleSelect.addEventListener("change", () => { axisScale.y = yScaleSelect.value; render(); });
-presetButtons.forEach(btn => {
-  btn.addEventListener("click", () => { functionInput.value = btn.dataset.fn; plotBtn.click(); });
-});
+presetButtons.forEach(btn => { btn.addEventListener("click", () => { functionInput.value = btn.dataset.fn; plotBtn.click(); }); });
 
 /* ===============================
    Init
