@@ -1,39 +1,43 @@
-/* ======================================================
-   Graph Analytic Engine - Engineering Workbench
-   ====================================================== */
+/* ===============================
+   Graph Analytic Engine
+   Engineering Workbench
+================================ */
 
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
-const input = document.getElementById("functionInput");
-const plotBtn = document.getElementById("plotBtn");
 const analysisOutput = document.getElementById("analysisOutput");
+const plotBtn = document.getElementById("plotBtn");
+const functionInput = document.getElementById("functionInput");
 
-/* ======================
-   Graph State
-====================== */
-let scale = 40;                 // px per unit
-let origin = { x: 0, y: 0 };    // graph origin (0,0) in canvas coords
-let func = null;
-let points = [];
+/* ===============================
+   State
+================================ */
+let functions = [];
+let scale = 40;              // px per unit
+let origin = { x: canvas.width / 2, y: canvas.height / 2 };
+let mouse = { x: null, y: null };
+const colors = ["#1e88e5", "#e53935", "#43a047"];
 
-/* ======================
-   Utilities
-====================== */
-function resizeCanvas() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = 400;
-  origin.x = canvas.width / 2;
-  origin.y = canvas.height / 2;
+/* ===============================
+   Math Parsing
+================================ */
+function parseFunction(expr) {
+  const sanitized = expr
+    .replace(/\^/g, "**")
+    .replace(/sin/g, "Math.sin")
+    .replace(/cos/g, "Math.cos")
+    .replace(/tan/g, "Math.tan")
+    .replace(/log/g, "Math.log10")
+    .replace(/ln/g, "Math.log")
+    .replace(/exp/g, "Math.exp")
+    .replace(/π/g, "Math.PI");
+
+  return new Function("x", `return ${sanitized}`);
 }
 
-window.addEventListener("resize", () => {
-  resizeCanvas();
-  draw();
-});
-
-/* ======================
-   Coordinate Transform
-====================== */
+/* ===============================
+   Coordinate Conversion
+================================ */
 function toCanvas(x, y) {
   return {
     x: origin.x + x * scale,
@@ -41,31 +45,30 @@ function toCanvas(x, y) {
   };
 }
 
-function toMath(cx, cy) {
+function toMath(x, y) {
   return {
-    x: (cx - origin.x) / scale,
-    y: (origin.y - cy) / scale
+    x: (x - origin.x) / scale,
+    y: (origin.y - y) / scale
   };
 }
 
-/* ======================
+/* ===============================
    Grid & Axes
-====================== */
+================================ */
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const step = scale;
-  ctx.strokeStyle = "#e1e6ef";
+  ctx.strokeStyle = "#dbe3f0";
   ctx.lineWidth = 1;
 
-  for (let x = origin.x % step; x < canvas.width; x += step) {
+  for (let x = origin.x % scale; x <= canvas.width; x += scale) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
   }
 
-  for (let y = origin.y % step; y < canvas.height; y += step) {
+  for (let y = origin.y % scale; y <= canvas.height; y += scale) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(canvas.width, y);
@@ -73,7 +76,7 @@ function drawGrid() {
   }
 
   // Axes
-  ctx.strokeStyle = "#222";
+  ctx.strokeStyle = "#000";
   ctx.lineWidth = 1.5;
 
   ctx.beginPath();
@@ -87,191 +90,191 @@ function drawGrid() {
   ctx.stroke();
 
   // Axis labels
-  ctx.fillStyle = "#222";
+  ctx.fillStyle = "#000";
   ctx.font = "12px system-ui";
   ctx.fillText("x", canvas.width - 12, origin.y - 6);
   ctx.fillText("y", origin.x + 6, 12);
 
-  drawGridNumbers();
-}
-
-function drawGridNumbers() {
+  // Scale numbers
   ctx.fillStyle = "#555";
-  ctx.font = "11px system-ui";
-
-  for (let i = -Math.floor(origin.x / scale); i < canvas.width / scale; i++) {
-    if (i === 0) continue;
-    const p = toCanvas(i, 0);
-    ctx.fillText(i, p.x - 4, origin.y + 14);
-  }
-
-  for (let i = -Math.floor((canvas.height - origin.y) / scale); i < origin.y / scale; i++) {
-    if (i === 0) continue;
-    const p = toCanvas(0, i);
-    ctx.fillText(i, origin.x + 6, p.y + 4);
+  for (let i = 1; i < 20; i++) {
+    ctx.fillText(i, origin.x + i * scale + 2, origin.y + 12);
+    ctx.fillText(-i, origin.x - i * scale + 2, origin.y + 12);
+    ctx.fillText(i, origin.x + 4, origin.y - i * scale - 2);
+    ctx.fillText(-i, origin.x + 4, origin.y + i * scale - 2);
   }
 }
 
-/* ======================
-   Function Parsing
-====================== */
-function parseFunction(expr) {
-  expr = expr.replace(/\^/g, "**");
-  return new Function("x", `return ${expr}`);
-}
+/* ===============================
+   Plot Functions
+================================ */
+function plotFunctions() {
+  functions.forEach((fn, index) => {
+    ctx.strokeStyle = colors[index];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
 
-/* ======================
-   Plotting
-====================== */
-function computePoints() {
-  points = [];
-  for (let px = 0; px < canvas.width; px++) {
-    const { x } = toMath(px, 0);
-    let y;
-    try {
-      y = func(x);
-      if (isFinite(y)) points.push({ x, y });
-    } catch {}
-  }
-}
+    let prevValid = false;
 
-function drawFunction() {
-  if (!points.length) return;
+    for (let px = 0; px < canvas.width; px++) {
+      const x = (px - origin.x) / scale;
+      let y;
 
-  ctx.strokeStyle = "#1a4fd8";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
+      try {
+        y = fn.func(x);
+        if (!isFinite(y)) throw "Invalid";
+      } catch {
+        prevValid = false;
+        continue;
+      }
 
-  points.forEach((p, i) => {
-    const c = toCanvas(p.x, p.y);
-    if (i === 0) ctx.moveTo(c.x, c.y);
-    else ctx.lineTo(c.x, c.y);
+      const p = toCanvas(x, y);
+      if (!prevValid) {
+        ctx.moveTo(p.x, p.y);
+        prevValid = true;
+      } else {
+        ctx.lineTo(p.x, p.y);
+      }
+    }
+
+    ctx.stroke();
+
+    // Intercepts
+    markIntercepts(fn);
   });
-
-  ctx.stroke();
 }
 
-/* ======================
+/* ===============================
    Intercepts
-====================== */
-function drawIntercepts() {
-  ctx.fillStyle = "#d7263d";
+================================ */
+function markIntercepts(fn) {
+  ctx.fillStyle = "#000";
 
-  points.forEach((p, i) => {
-    if (i === 0) return;
-    const prev = points[i - 1];
+  for (let x = -10; x <= 10; x += 0.01) {
+    let y1 = fn.func(x);
+    let y2 = fn.func(x + 0.01);
+    if (y1 === undefined || y2 === undefined) continue;
 
-    // x-intercept
-    if (p.y === 0 || (p.y * prev.y < 0)) {
-      const x0 = p.x;
-      const c = toCanvas(x0, 0);
+    if (y1 * y2 < 0) {
+      const p = toCanvas(x, 0);
       ctx.beginPath();
-      ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
       ctx.fill();
     }
-  });
+  }
 
-  // y-intercept
   try {
-    const y0 = func(0);
-    const c = toCanvas(0, y0);
-    ctx.beginPath();
-    ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
-    ctx.fill();
+    const y0 = fn.func(0);
+    if (isFinite(y0)) {
+      const p = toCanvas(0, y0);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } catch {}
 }
 
-/* ======================
-   Cursor Tracking
-====================== */
-canvas.addEventListener("mousemove", e => {
-  if (!func) return;
-  draw();
+/* ===============================
+   Cursor & Tooltip
+================================ */
+function drawCursorInfo() {
+  if (mouse.x === null) return;
 
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
-  const { x, y } = toMath(cx, cy);
+  const m = toMath(mouse.x, mouse.y);
+  const fn = functions[0];
+  if (!fn) return;
 
-  let dy;
+  let y;
   try {
-    const h = 1e-4;
-    dy = (func(x + h) - func(x - h)) / (2 * h);
-  } catch {}
+    y = fn.func(m.x);
+  } catch {
+    return;
+  }
 
-  const p = toCanvas(x, func(x));
+  const p = toCanvas(m.x, y);
 
-  // marker
-  ctx.fillStyle = "#ff7a00";
+  // Point
+  ctx.fillStyle = "#ff5722";
   ctx.beginPath();
-  ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+  ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
   ctx.fill();
 
-  // info box
-  ctx.fillStyle = "rgba(0,0,0,0.75)";
-  ctx.fillRect(cx + 10, cy + 10, 160, 60);
+  // Crosshair
+  ctx.strokeStyle = "#aaa";
+  ctx.beginPath();
+  ctx.moveTo(p.x, 0);
+  ctx.lineTo(p.x, canvas.height);
+  ctx.moveTo(0, p.y);
+  ctx.lineTo(canvas.width, p.y);
+  ctx.stroke();
 
+  // Tooltip
   ctx.fillStyle = "#fff";
-  ctx.font = "12px system-ui";
-  ctx.fillText(`x = ${x.toFixed(3)}`, cx + 16, cy + 28);
-  ctx.fillText(`y = ${func(x).toFixed(3)}`, cx + 16, cy + 44);
-  ctx.fillText(`dy/dx = ${dy?.toFixed(3)}`, cx + 16, cy + 60);
-});
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1;
 
-/* ======================
-   Zoom (Wheel)
-====================== */
-canvas.addEventListener("wheel", e => {
-  e.preventDefault();
-  scale *= e.deltaY < 0 ? 1.1 : 0.9;
-  scale = Math.max(10, Math.min(scale, 200));
-  draw();
-});
+  const text = `x=${m.x.toFixed(3)}, y=${y.toFixed(3)}`;
+  ctx.fillRect(p.x + 10, p.y - 30, 140, 22);
+  ctx.strokeRect(p.x + 10, p.y - 30, 140, 22);
+  ctx.fillStyle = "#000";
+  ctx.fillText(text, p.x + 14, p.y - 14);
+}
 
-/* ======================
+/* ===============================
    Analysis
-====================== */
+================================ */
 function analyze() {
-  let min = Infinity, max = -Infinity;
-  points.forEach(p => {
-    min = Math.min(min, p.y);
-    max = Math.max(max, p.y);
+  let html = "";
+  functions.forEach((fn, i) => {
+    html += `Function ${i + 1}: <strong>${fn.expr}</strong><br>`;
+    html += `• Domain: ℝ (approx)<br>`;
+    html += `• Intercepts: visualized on graph<br><br>`;
   });
-
-  analysisOutput.innerHTML = `
-    <strong>Domain:</strong> visible x-range<br>
-    <strong>Range:</strong> [${min.toFixed(3)}, ${max.toFixed(3)}]<br>
-    <strong>Scale:</strong> ${scale.toFixed(1)} px/unit
-  `;
+  analysisOutput.innerHTML = html;
 }
 
-/* ======================
-   Main Draw
-====================== */
-function draw() {
+/* ===============================
+   Render
+================================ */
+function render() {
   drawGrid();
-  if (func) {
-    computePoints();
-    drawFunction();
-    drawIntercepts();
-    analyze();
-  }
+  plotFunctions();
+  drawCursorInfo();
 }
 
-/* ======================
+/* ===============================
    Events
-====================== */
-plotBtn.addEventListener("click", () => {
-  try {
-    func = parseFunction(input.value);
-    draw();
-  } catch {
-    analysisOutput.textContent = "Invalid function expression.";
-  }
+================================ */
+canvas.addEventListener("mousemove", e => {
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = e.clientX - rect.left;
+  mouse.y = e.clientY - rect.top;
+  render();
 });
 
-/* ======================
+canvas.addEventListener("mouseleave", () => {
+  mouse.x = mouse.y = null;
+  render();
+});
+
+plotBtn.addEventListener("click", () => {
+  const exprs = functionInput.value.split(",").slice(0, 3);
+  functions = exprs.map((e, i) => ({
+    expr: e.trim(),
+    func: parseFunction(e.trim()),
+    color: colors[i]
+  }));
+  analyze();
+  render();
+});
+
+window.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") scale *= 1.1;
+  if (e.key === "ArrowDown") scale /= 1.1;
+  render();
+});
+
+/* ===============================
    Init
-====================== */
-resizeCanvas();
-draw();
+================================ */
+render();
