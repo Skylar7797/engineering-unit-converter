@@ -1,106 +1,116 @@
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
 
+const input = document.getElementById("functionInput");
 const plotBtn = document.getElementById("plotBtn");
-const output = document.getElementById("analysisOutput");
+const analysisOutput = document.getElementById("analysisOutput");
+
+const xminInput = document.getElementById("xmin");
+const xmaxInput = document.getElementById("xmax");
+
+const SAFE_MATH = {
+  sin: Math.sin,
+  cos: Math.cos,
+  tan: Math.tan,
+  log: Math.log10,
+  ln: Math.log,
+  exp: Math.exp,
+  sqrt: Math.sqrt,
+  abs: Math.abs,
+  pi: Math.PI,
+  e: Math.E
+};
 
 function parseFunction(expr) {
-  const safeExpr = expr
-    .replace(/sin/g, "Math.sin")
-    .replace(/cos/g, "Math.cos")
-    .replace(/tan/g, "Math.tan")
-    .replace(/log/g, "Math.log10")
-    .replace(/ln/g, "Math.log")
-    .replace(/exp/g, "Math.exp")
-    .replace(/sqrt/g, "Math.sqrt")
-    .replace(/pi/g, "Math.PI");
+  let safeExpr = expr
+    .replace(/\^/g, "**")
+    .replace(/([a-z]+)\(/gi, "SAFE_MATH.$1(");
 
-  return new Function("x", `return ${safeExpr}`);
+  return new Function("x", "SAFE_MATH", `return ${safeExpr}`);
 }
 
-function drawAxes(xmin, xmax, ymin, ymax) {
-  ctx.strokeStyle = "#bbb";
-  ctx.lineWidth = 1;
+function sampleFunction(f, xmin, xmax, n = 800) {
+  const data = [];
+  const dx = (xmax - xmin) / n;
 
-  const x0 = (-xmin / (xmax - xmin)) * canvas.width;
-  const y0 = (ymax / (ymax - ymin)) * canvas.height;
-
-  ctx.beginPath();
-  ctx.moveTo(0, y0);
-  ctx.lineTo(canvas.width, y0);
-  ctx.moveTo(x0, 0);
-  ctx.lineTo(x0, canvas.height);
-  ctx.stroke();
+  for (let i = 0; i <= n; i++) {
+    const x = xmin + i * dx;
+    let y = NaN;
+    try {
+      y = f(x, SAFE_MATH);
+    } catch {}
+    data.push({ x, y });
+  }
+  return data;
 }
 
-plotBtn.onclick = () => {
+function drawGraph(data) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const expr = document.getElementById("funcInput").value;
-  const xmin = parseFloat(document.getElementById("xmin").value);
-  const xmax = parseFloat(document.getElementById("xmax").value);
+  const ys = data.map(p => p.y).filter(v => isFinite(v));
+  const ymin = Math.min(...ys);
+  const ymax = Math.max(...ys);
 
-  let f;
-  try {
-    f = parseFunction(expr);
-  } catch {
-    output.textContent = "Invalid function expression.";
-    return;
-  }
+  const pad = 40;
+  const scaleX = (canvas.width - 2 * pad) / (data[data.length - 1].x - data[0].x);
+  const scaleY = (canvas.height - 2 * pad) / (ymax - ymin || 1);
 
-  const samples = 1000;
-  const dx = (xmax - xmin) / samples;
-  let points = [];
-
-  let ymin = Infinity;
-  let ymax = -Infinity;
-  let minVal = Infinity;
-  let maxVal = -Infinity;
-  let minX = 0;
-  let maxX = 0;
-
-  for (let i = 0; i <= samples; i++) {
-    const x = xmin + i * dx;
-    let y;
-    try {
-      y = f(x);
-    } catch {
-      continue;
-    }
-
-    if (!isFinite(y)) continue;
-
-    points.push({ x, y });
-    if (y < ymin) ymin = y;
-    if (y > ymax) ymax = y;
-
-    if (y < minVal) {
-      minVal = y;
-      minX = x;
-    }
-    if (y > maxVal) {
-      maxVal = y;
-      maxX = x;
-    }
-  }
-
-  drawAxes(xmin, xmax, ymin, ymax);
-
-  ctx.strokeStyle = "#1b2a6f";
-  ctx.lineWidth = 2;
   ctx.beginPath();
+  ctx.strokeStyle = "#1f4fd8";
+  ctx.lineWidth = 2;
 
-  points.forEach((p, i) => {
-    const px = ((p.x - xmin) / (xmax - xmin)) * canvas.width;
-    const py = ((ymax - p.y) / (ymax - ymin)) * canvas.height;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+  data.forEach((p, i) => {
+    if (!isFinite(p.y)) return;
+    const cx = pad + (p.x - data[0].x) * scaleX;
+    const cy = canvas.height - pad - (p.y - ymin) * scaleY;
+    if (i === 0) ctx.moveTo(cx, cy);
+    else ctx.lineTo(cx, cy);
   });
 
   ctx.stroke();
+}
 
-  output.innerHTML = `
-    Max: ${maxVal.toFixed(4)} at x = ${maxX.toFixed(4)}<br/>
-    Min: ${minVal.toFixed(4)} at x = ${minX.toFixed(4)}
-  `;
-};
+function analyze(data) {
+  let max = { y: -Infinity };
+  let min = { y: Infinity };
+  let zeros = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const p = data[i];
+    const prev = data[i - 1];
+
+    if (!isFinite(p.y)) continue;
+
+    if (p.y > max.y) max = p;
+    if (p.y < min.y) min = p;
+
+    if (prev.y * p.y < 0) {
+      zeros.push(p.x.toFixed(3));
+    }
+  }
+
+  let trend = data[0].y < data[data.length - 1].y
+    ? "Overall increasing"
+    : "Overall decreasing";
+
+  return `
+Max: ${max.y.toFixed(4)} at x = ${max.x.toFixed(4)}<br>
+Min: ${min.y.toFixed(4)} at x = ${min.x.toFixed(4)}<br>
+Zeros: ${zeros.length ? zeros.join(", ") : "None detected"}<br>
+Trend: ${trend}
+`;
+}
+
+plotBtn.addEventListener("click", () => {
+  try {
+    const f = parseFunction(input.value);
+    const xmin = parseFloat(xminInput.value);
+    const xmax = parseFloat(xmaxInput.value);
+
+    const data = sampleFunction(f, xmin, xmax);
+    drawGraph(data);
+    analysisOutput.innerHTML = analyze(data);
+  } catch (e) {
+    analysisOutput.textContent = "Invalid function expression.";
+  }
+});
