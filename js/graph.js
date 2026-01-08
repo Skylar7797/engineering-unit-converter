@@ -97,10 +97,9 @@ const toMath = (x, y) => {
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // minor grid
+  // ===== MINOR GRID =====
   ctx.strokeStyle = "#edf2fa";
   ctx.lineWidth = 1;
-
   const minor = scale / 2;
   for (let x = origin.x % minor; x < canvas.width; x += minor) {
     ctx.beginPath();
@@ -108,7 +107,6 @@ function drawGrid() {
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
   }
-
   for (let y = origin.y % minor; y < canvas.height; y += minor) {
     ctx.beginPath();
     ctx.moveTo(0, y);
@@ -116,17 +114,15 @@ function drawGrid() {
     ctx.stroke();
   }
 
-  // major grid
+  // ===== MAJOR GRID =====
   ctx.strokeStyle = "#dbe3f0";
   ctx.lineWidth = 1.2;
-
   for (let x = origin.x % scale; x < canvas.width; x += scale) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
   }
-
   for (let y = origin.y % scale; y < canvas.height; y += scale) {
     ctx.beginPath();
     ctx.moveTo(0, y);
@@ -134,7 +130,7 @@ function drawGrid() {
     ctx.stroke();
   }
 
-  // axes
+  // ===== AXES =====
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -143,6 +139,34 @@ function drawGrid() {
   ctx.moveTo(origin.x, 0);
   ctx.lineTo(origin.x, canvas.height);
   ctx.stroke();
+
+  // ===== AXIS LABELS =====
+  ctx.fillStyle = "#000";
+  ctx.font = "12px system-ui";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+
+  // x-axis
+  for (let i = -Math.floor(origin.x / scale); i <= Math.floor((canvas.width - origin.x) / scale); i++) {
+    if (i === 0) continue;
+    const xPos = origin.x + i * scale;
+    ctx.fillText(i, xPos, origin.y + 4);
+  }
+
+  // y-axis
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let i = -Math.floor(origin.y / scale); i <= Math.floor((canvas.height - origin.y) / scale); i++) {
+    if (i === 0) continue;
+    const yPos = origin.y - i * scale;
+    ctx.fillText(i, origin.x - 4, yPos);
+  }
+
+  // Axis names
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("x", canvas.width - 12, origin.y + 4);
+  ctx.fillText("y", origin.x + 4, 2);
 }
 
 /* ===============================
@@ -218,18 +242,12 @@ function drawCursor() {
   let cx = m.x;
   let cy = m.y;
 
-  if (cursorMode === "follow" && functions[0]) {
-    try {
-      cy = functions[0].func(cx);
-    } catch {
-      return;
-    }
-  }
-
   const p = toCanvas(cx, cy);
   if (!p) return;
 
+  // ===== CROSSHAIR =====
   ctx.strokeStyle = "#aaa";
+  ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(p.x, 0);
   ctx.lineTo(p.x, canvas.height);
@@ -237,34 +255,64 @@ function drawCursor() {
   ctx.lineTo(canvas.width, p.y);
   ctx.stroke();
 
+  // ===== POINT =====
   ctx.fillStyle = "#ff5722";
   ctx.beginPath();
   ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
   ctx.fill();
 
-  // realtime analysis
-  let html = `<strong>Cursor</strong><br>x=${cx.toFixed(4)}<br>`;
+  // ===== FLOATING INFO BOX ON CANVAS =====
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 1;
+
+  const boxX = p.x + 12;      // 점 오른쪽
+  const boxY = p.y - 48;      // 점 위쪽
+  const boxW = 190;           // 박스 너비
+  const boxH = 42 + functions.length * 14; // 함수 갯수에 맞춰 높이 조정
+
+  ctx.fillRect(boxX, boxY, boxW, boxH);
+  ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+  ctx.fillStyle = "#000";
+  ctx.font = "12px system-ui";
+
+  let textY = boxY + 14;
+  ctx.fillText(`x = ${cx.toFixed(4)}`, boxX + 8, textY);
+  textY += 14;
 
   functions.forEach((fn, i) => {
-    let y, slope;
     try {
-      y = fn.func(cx);
-      slope =
-        (fn.func(cx + 1e-3) - fn.func(cx - 1e-3)) / 2e-3;
-    } catch {
-      return;
-    }
+      const y = fn.func(cx);
+      const slope =
+        (fn.func(cx + 1e-4) - fn.func(cx - 1e-4)) / 2e-4;
 
-    html += `
-      <span style="color:${colors[i]}">
-      f${i + 1}(x)=${y.toFixed(4)}, slope=${slope.toFixed(4)}
-      </span><br>
-    `;
+      ctx.fillStyle = colors[i];
+      ctx.fillText(
+        `f${i + 1}(x)=${y.toFixed(4)}, dy/dx=${slope.toFixed(4)}`,
+        boxX + 8,
+        textY
+      );
+      textY += 14;
+    } catch {}
   });
 
+  // ===== HTML ANALYSIS UPDATE (OPTIONAL) =====
+  let html = `<strong>Cursor</strong><br>x=${cx.toFixed(4)}<br>`;
+  functions.forEach((fn, i) => {
+    try {
+      const y = fn.func(cx);
+      const slope =
+        (fn.func(cx + 1e-3) - fn.func(cx - 1e-3)) / 2e-3;
+      html += `<span style="color:${colors[i]}">f${i + 1}(x)=${y.toFixed(
+        4
+      )}, slope=${slope.toFixed(4)}</span><br>`;
+    } catch {}
+  });
   html += `<em>Scale: ${scale.toFixed(1)} px/unit</em>`;
   analysisOutput.innerHTML = html;
 }
+
 
 /* ===============================
    Render
