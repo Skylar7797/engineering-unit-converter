@@ -194,18 +194,27 @@ angleModeEl.addEventListener("click", () => {
 
 // [D] 키보드 단축키 처리
 document.addEventListener("keydown", (e) => {
-  // Enter 키는 어디서든 계산 실행
+  // 1. 현재 포커스가 Unit Converter의 입력창이나 메모장(textarea)에 있다면 계산기 단축키 작동 방지
+  const activeTag = document.activeElement.tagName;
+  const activeId = document.activeElement.id;
+
+  if (activeId === "inputValue" || activeTag === "TEXTAREA") {
+    return; // 함수 종료 (계산기에 입력되지 않음)
+  }
+
+  // Enter 키 처리
   if (e.key === "Enter") {
     e.preventDefault();
     evaluateExpression();
   } 
-  // ESC 키는 초기화
+  // ESC 키 처리
   else if (e.key === "Escape") {
     expression = "";
     updateDisplay();
   }
   
-  // 만약 입력창에 포커스가 없다면, 숫자나 연산자 키를 눌렀을 때 입력창으로 값 전달
+  // 계산기 입력창(inputEl) 자체가 아닌 다른 곳에 포커스가 있을 때만 실행 
+  // (입력창 자체에 있을 때는 브라우저 기본 입력 기능 사용)
   if (document.activeElement !== inputEl) {
     if (!isNaN(e.key) || "+-*/().^".includes(e.key)) {
       appendValue(e.key);
