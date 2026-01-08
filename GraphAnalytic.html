@@ -40,9 +40,8 @@
     <aside class="sidebar left-sidebar">
       <div class="sidebar-text">
         <h3>Graph Analytic</h3>
-        <p>Interactive visualization and numerical analysis of mathematical functions.</p>
-        <p>Designed for engineering intuition, not presentation plotting.</p>
-        <p><em>Visual insight often precedes correct reasoning.</em></p>
+        <p>Function visualization with numerical and qualitative analysis.</p>
+        <p>Axes, zero-crossings, extrema, and slope behavior are explicitly shown.</p>
       </div>
     </aside>
 
@@ -53,19 +52,20 @@
         <h2>Function Plotter</h2>
 
         <div class="convert-input">
-          <input type="text" id="functionInput" placeholder="e.g. sin(x), x^2, exp(x)" />
+          <input type="text" id="functionInput"
+            placeholder="e.g. sin(x), x^2-4, exp(-x)" />
           <button class="convert-btn" id="plotBtn">Plot</button>
         </div>
 
         <div style="display:flex; gap:8px; margin-top:12px;">
-          <input type="number" id="xmin" placeholder="x min" value="-10">
-          <input type="number" id="xmax" placeholder="x max" value="10">
+          <input type="number" id="xmin" value="-10">
+          <input type="number" id="xmax" value="10">
         </div>
 
         <canvas
           id="graphCanvas"
-          width="800"
-          height="400"
+          width="900"
+          height="450"
           style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px;"
         ></canvas>
       </section>
@@ -73,13 +73,12 @@
       <section class="tool-panel" style="margin-top:24px;">
         <h2>Analysis</h2>
         <div class="result-label" id="analysisOutput">
-          Enter a function to analyze its behavior.
+          Awaiting function input.
         </div>
       </section>
     </section>
 
     <aside class="sidebar right-sidebar"></aside>
-
   </div>
 </main>
 
