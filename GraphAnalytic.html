@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -14,6 +13,17 @@
 <title>Graph Analytic | Engineering Workbench</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/style.css">
+<style>
+  /* 추가된 스타일링 */
+  .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px; }
+  .analysis-card { padding: 10px; border: 1px solid #eee; border-radius: 4px; background: #fff; }
+  .analysis-card h4 { margin: 0 0 8px 0; font-size: 14px; color: #1e88e5; }
+  .data-table-container { margin-top: 20px; max-height: 250px; overflow: auto; border: 1px solid #ddd; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
+  th { background: #f4f7f9; position: sticky; top: 0; }
+  .export-btn { background: #4caf50; margin-left: 10px; }
+</style>
 </head>
 
 <body>
@@ -56,34 +66,24 @@
       <h1>Graph Analytic</h1>
 
       <section class="tool-panel">
-        <h2>Function Plotter</h2>
-
-        <!-- MODE SELECT (기존) -->
-        <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
-          <label>
-            <input type="radio" name="cursorMode" value="follow" checked>
-            Follow Function
-          </label>
-          <label>
-            <input type="radio" name="cursorMode" value="free">
-            Free Cursor
-          </label>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2>Function Plotter</h2>
+          <button class="convert-btn" id="saveImgBtn" style="background:#555;">Save as Image</button>
         </div>
 
-        <!-- ===============================
-             [ADDED] Axis Scale Control
-        =============================== -->
         <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
-          <label>
-            X-axis scale
+          <label><input type="radio" name="cursorMode" value="follow" checked> Follow Function</label>
+          <label><input type="radio" name="cursorMode" value="free"> Free Cursor</label>
+        </div>
+
+        <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+          <label>X-axis scale
             <select id="xScale">
               <option value="linear">Linear</option>
               <option value="log">Log</option>
             </select>
           </label>
-
-          <label>
-            Y-axis scale
+          <label>Y-axis scale
             <select id="yScale">
               <option value="linear">Linear</option>
               <option value="log">Log</option>
@@ -91,42 +91,51 @@
           </label>
         </div>
 
-        <!-- Function Input (기존) -->
         <div class="convert-input">
-          <input type="text" id="functionInput"
-            placeholder="e.g. sin(x), x^2-4, exp(-x)" />
+          <input type="text" id="functionInput" placeholder="f1(x), f2(x), f3(x) (e.g. sin(x), cos(2*x), x/2)" />
           <button class="convert-btn" id="plotBtn">Plot</button>
         </div>
 
-        <!-- ===============================
-             [ADDED] Preset Engineering Functions
-        =============================== -->
         <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-          <button class="convert-btn preset" data-fn="exp(-x^2)">Gaussian</button>
-          <button class="convert-btn preset" data-fn="sin(x)">Sine</button>
-          <button class="convert-btn preset" data-fn="sin(x)/x">Sinc</button>
-          <button class="convert-btn preset" data-fn="exp(-x)*cos(2*x)">Damped</button>
+          <button class="convert-btn preset" data-fn="sin(x), cos(x), tan(x)">Trig Set</button>
+          <button class="convert-btn preset" data-fn="x, x^2, x^3">Polynomials</button>
+          <button class="convert-btn preset" data-fn="exp(-x^2), exp(-x), ln(x)">Growth/Decay</button>
         </div>
 
-        <!-- Range Input (기존, 유지) -->
-        <div style="display:flex; gap:8px; margin-top:12px;">
-          <input type="number" id="xmin" value="-10">
-          <input type="number" id="xmax" value="10">
-        </div>
-
-        <!-- Canvas (기존) -->
-        <canvas
-          id="graphCanvas"
-          width="900"
-          height="450"
-          style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px;"
-        ></canvas>
+        <canvas id="graphCanvas" width="900" height="450" style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px; border:1px solid #ddd;"></canvas>
       </section>
 
       <section class="tool-panel" style="margin-top:24px;">
-        <h2>Analysis</h2>
-        <div class="result-label" id="analysisOutput">
-          Awaiting function input.
+        <h2>Detailed Analysis</h2>
+        <div id="analysisOutput">
+           <div class="analysis-grid">
+              <div class="analysis-card"><h4>Coordinates</h4><div id="val-coord">-</div></div>
+              <div class="analysis-card"><h4>Slope (f1)</h4><div id="val-slope">-</div></div>
+              <div class="analysis-card"><h4>Intercepts (f1)</h4><div id="val-intercepts">-</div></div>
+              <div class="analysis-card"><h4>Unit Conv.</h4><div id="val-unit">-</div></div>
+           </div>
+        </div>
+      </section>
+
+      <section class="tool-panel" style="margin-top:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2>Data Points (Visible Range)</h2>
+          <button class="convert-btn export-btn" id="exportCsvBtn">Export CSV</button>
+        </div>
+        <div class="data-table-container">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>X Value</th>
+                <th>f1(x)</th>
+                <th>f2(x)</th>
+                <th>f3(x)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4">Plot a function to see data points.</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </section>
@@ -137,14 +146,8 @@
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <a href="/about.html">About</a>
-    <span>|</span>
-    <a href="/privacy.html">Privacy Policy</a>
-    <span>|</span>
-    <a href="/contact.html">Contact</a>
-    <span style="margin-left:auto; opacity:0.8;">
-      © 2026 Engineering Workbench
-    </span>
+    <a href="/about.html">About</a> | <a href="/privacy.html">Privacy</a> | <a href="/contact.html">Contact</a>
+    <span style="margin-left:auto; opacity:0.8;">© 2026 Engineering Workbench</span>
   </div>
 </footer>
 
