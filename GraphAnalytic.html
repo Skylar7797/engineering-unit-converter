@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1VBV3J3DVG');
+</script>
+
+<meta charset="UTF-8">
+<title>Graph Analytic | Engineering Workbench</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">Engineering Workbench</div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="/index.html" class="nav-link">Converter & Calculator</a>
+    <a href="/GraphAnalytic.html" class="nav-link active">Graph Analytic</a>
+    <a href="/insights.html" class="nav-link">Insights</a>
+    <a href="/faq.html" class="nav-link">FAQ</a>
+    <a href="/help.html" class="nav-link">Help</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="site-main">
+  <div class="main-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar left-sidebar">
+      <div class="sidebar-text">
+        <h3>Graph Analytic</h3>
+
+        <p>
+          This page provides interactive visualization of mathematical
+          functions and numerical relationships commonly encountered in
+          engineering analysis.
+        </p>
+
+        <p>
+          By directly observing function behavior, trends, and curvature,
+          complex relationships can be understood more intuitively than
+          through equations alone.
+        </p>
+
+        <p>
+          The tool is intended to support quick exploration rather than
+          formal plotting software.
+        </p>
+
+        <p><em>Visual insight often precedes correct reasoning.</em></p>
+      </div>
+    </aside>
+
+    <!-- CENTER CONTENT -->
+    <section class="main-container">
+      <h1>Graph Analytic</h1>
+
+      <!-- GRAPH PANEL -->
+      <section class="tool-panel">
+        <h2>Function Plotter</h2>
+
+        <div class="convert-input">
+          <input
+            type="text"
+            id="functionInput"
+            placeholder="e.g. sin(x), x^2, exp(x)"
+          />
+          <button class="convert-btn" id="plotBtn">Plot</button>
+        </div>
+
+        <canvas
+          id="graphCanvas"
+          width="800"
+          height="400"
+          style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px;"
+        ></canvas>
+      </section>
+
+      <!-- ANALYSIS OUTPUT -->
+      <section class="tool-panel" style="margin-top:24px;">
+        <h2>Analysis</h2>
+        <div class="result-label" id="analysisOutput">
+          Enter a function to analyze its behavior.
+        </div>
+      </section>
+    </section>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar right-sidebar">
+      <!-- Ads or reserved -->
+    </aside>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a href="/about.html">About</a>
+    <span>|</span>
+    <a href="/privacy.html">Privacy Policy</a>
+    <span>|</span>
+    <a href="/contact.html">Contact</a>
+    <span style="margin-left:auto; opacity:0.8;">
+      © 2026 Engineering Workbench
+    </span>
+  </div>
+</footer>
+
+<script src="js/graph.js"></script>
+</body>
+</html>
