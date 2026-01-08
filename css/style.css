@@ -155,12 +155,12 @@ body {
 }
 
 /* ===============================
-   Conversion Area 수정
+   Conversion Area
 ================================ */
 .converter-work {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Enter Value, 단위, 버튼 간격 */
+  gap: 12px;
 }
 
 .convert-input {
@@ -175,7 +175,6 @@ body {
   font-size: 14px;
 }
 
-/* 단위 선택 영역: Enter Value 아래 */
 .unit-selection {
   display: flex;
   gap: 8px;
@@ -192,7 +191,6 @@ body {
   font-weight: bold;
 }
 
-/* Convert 버튼: 단위 → 단위 아래로 */
 .convert-btn {
   margin-top: 8px;
   width: 120px;
@@ -227,8 +225,7 @@ body {
 
 /* ===============================
    Scientific Calculator
-   =============================== */
-
+================================ */
 #calculator {
   background: #1e1e1e;
   border-radius: 12px;
@@ -237,7 +234,6 @@ body {
   font-family: "Segoe UI", Consolas, monospace;
 }
 
-/* ===== HISTORY ===== */
 .calc-history {
   min-height: 70px;
   margin-bottom: 8px;
@@ -256,7 +252,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* ===== DISPLAY ===== */
 .calc-display {
   position: relative;
   background: #000;
@@ -275,7 +270,6 @@ body {
   text-align: right;
 }
 
-/* DEG / RAD indicator */
 .angle-mode {
   position: absolute;
   top: 6px;
@@ -285,14 +279,12 @@ body {
   color: #ff3b3b;
 }
 
-/* ===== BUTTON GRID ===== */
 .calc-buttons {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
 }
 
-/* ===== BUTTON BASE ===== */
 .calc-buttons button {
   height: 42px;
   background: #2b2b2b;
@@ -314,7 +306,6 @@ body {
   box-shadow: inset 0 -1px 0 #000;
 }
 
-/* ===== FUNCTION KEYS ===== */
 .calc-buttons button[data-key="sin"],
 .calc-buttons button[data-key="cos"],
 .calc-buttons button[data-key="tan"],
@@ -327,7 +318,6 @@ body {
   color: #4fc3f7;
 }
 
-/* ===== OPERATOR KEYS ===== */
 .calc-buttons button[data-key="+"],
 .calc-buttons button[data-key="-"],
 .calc-buttons button[data-key="*"],
@@ -336,7 +326,6 @@ body {
   color: #ffd54f;
 }
 
-/* ===== CLEAR / DELETE ===== */
 .calc-buttons button[data-key="C"] {
   background: #5c1a1a;
   color: #ff8a80;
@@ -347,14 +336,12 @@ body {
   color: #ffcc80;
 }
 
-/* ===== EQUAL ===== */
 .calc-buttons button.equal {
   background: #00695c;
   color: #ffffff;
   font-weight: bold;
 }
 
-/* ===== ZERO KEY ===== */
 .calc-buttons button.zero {
   grid-column: span 2;
 }
@@ -385,7 +372,6 @@ body {
   font-family: inherit;
   font-size: 14px;
 }
-
 
 /* ===============================
    Sidebar
@@ -460,4 +446,50 @@ body {
   border: 1px solid #ddd;
   border-radius: 6px;
   min-height: 400px;
+}
+
+/* ===============================
+   Responsive Layout
+================================ */
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr minmax(0, 1fr) 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .left-sidebar,
+  .right-sidebar {
+    display: none;
+  }
+
+  .main-container {
+    padding: 16px;
+  }
+
+  .workbench {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tool-stack {
+    grid-template-rows: auto auto;
+    gap: 16px;
+  }
+
+  .converter-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .unit-selection select,
+  .convert-btn {
+    width: 100%;
+  }
 }
