@@ -9,7 +9,7 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   color: #222;
-  background-color: #f7f7f7;
+  background-color: #f0f4f8; /* 전체 배경 약간 밝은 회색/블루 톤 */
 }
 
 /* ===============================
@@ -18,8 +18,9 @@ body {
 .site-header {
   height: 64px;
   width: 100%;
-  background: #ffffff;
-  border-bottom: 1px solid #ddd;
+  background: #1e3a8a; /* 모던 네이비 블루 */
+  color: #ffffff;      /* 글자 흰색 */
+  border-bottom: 2px solid #0f1f4a; /* 경계선 강조 */
 }
 
 .header-inner {
@@ -34,6 +35,7 @@ body {
 .logo {
   font-size: 18px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 /* ===============================
@@ -42,8 +44,8 @@ body {
 .site-nav {
   height: 56px;
   width: 100%;
-  background: #fafafa;
-  border-bottom: 1px solid #ddd;
+  background: #283593; /* 헤더보다 약간 밝은 블루 */
+  border-bottom: 2px solid #1a237e; /* 경계선 선명 */
 }
 
 .nav-inner {
@@ -58,13 +60,13 @@ body {
 
 .nav-link {
   text-decoration: none;
-  color: #444;
+  color: #e0e0e0; /* 메뉴 글자 밝은 회색 */
   font-weight: 500;
 }
 
 .nav-link.active {
-  color: #000;
-  border-bottom: 2px solid #000;
+  color: #ffffff;
+  border-bottom: 2px solid #ffffff;
   padding-bottom: 4px;
 }
 
@@ -104,7 +106,7 @@ body {
 }
 
 .tool-panel {
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc; /* 경계선 선명 */
   border-radius: 6px;
   padding: 16px;
   background: #ffffff;
@@ -128,7 +130,7 @@ body {
    Parameter List
 ================================ */
 .converter-params {
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc;
   border-radius: 6px;
   overflow-y: auto;
   max-height: 320px;
@@ -150,7 +152,7 @@ body {
 }
 
 .converter-params button.active {
-  background: #eaeaea;
+  background: #e3f2fd; /* 선택된 버튼 연한 블루 */
   font-weight: 600;
 }
 
@@ -209,7 +211,7 @@ body {
 }
 
 .convert-result {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #cfd8dc;
   padding-top: 12px;
 }
 
@@ -227,11 +229,12 @@ body {
    Scientific Calculator
 ================================ */
 #calculator {
-  background: #1e1e1e;
+  background: #212121; /* 진한 회색 */
   border-radius: 12px;
   padding: 14px;
   box-shadow: inset 0 0 0 1px #333;
   font-family: "Segoe UI", Consolas, monospace;
+  color: #ffffff;
 }
 
 .calc-history {
@@ -314,16 +317,16 @@ body {
 .calc-buttons button[data-key="√"],
 .calc-buttons button[data-key="pow"],
 .calc-buttons button[data-key="x2"] {
-  background: #263238;
-  color: #4fc3f7;
+  background: #1565c0; /* 기능키 블루 계열 */
+  color: #ffffff;
 }
 
 .calc-buttons button[data-key="+"],
 .calc-buttons button[data-key="-"],
 .calc-buttons button[data-key="*"],
 .calc-buttons button[data-key="/"] {
-  background: #37474f;
-  color: #ffd54f;
+  background: #0d47a1; /* 연산키 진한 블루 */
+  color: #ffeb3b;
 }
 
 .calc-buttons button[data-key="C"] {
@@ -350,7 +353,7 @@ body {
    Memo Panel
 ================================ */
 .memo-panel {
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc;
   border-radius: 6px;
   padding: 16px;
   background: #ffffff;
@@ -378,7 +381,7 @@ body {
 ================================ */
 .sidebar {
   background: #ffffff;
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc;
   border-radius: 6px;
   min-height: 400px;
 }
@@ -388,7 +391,7 @@ body {
 ================================ */
 .main-container {
   background: #ffffff;
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc;
   border-radius: 6px;
   padding: 24px;
 }
@@ -404,8 +407,9 @@ body {
 .site-footer {
   height: 56px;
   width: 100%;
-  background: #ffffff;
-  border-top: 1px solid #ddd;
+  background: #1e3a8a; /* 헤더와 동일 톤 */
+  color: #ffffff;
+  border-top: 2px solid #0f1f4a;
 }
 
 .footer-inner {
@@ -421,7 +425,7 @@ body {
 
 .site-footer a {
   text-decoration: none;
-  color: #444;
+  color: #e0e0e0;
 }
 
 /* ===============================
@@ -436,14 +440,14 @@ body {
 
 .page-content {
   background: #ffffff;
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc;
   border-radius: 6px;
   padding: 24px;
 }
 
 .page-sidebar {
   background: #ffffff;
-  border: 1px solid #ddd;
+  border: 1px solid #cfd8dc;
   border-radius: 6px;
   min-height: 400px;
 }
