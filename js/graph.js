@@ -45,7 +45,7 @@ const isTriFunction = (fn) => /sin|cos|tan|cot|sec|csc/.test(fn.expr);
 const getUnitFactor = () => (functions.some(isTriFunction) ? Math.PI : 1);
 
 /* ===============================
-   Coordinate Conversion (Precision Sync)
+   Coordinate Conversion
 ================================ */
 const tx = (x) => (axisScale.x === "log" ? (x <= 0 ? null : Math.log10(x)) : x);
 const ty = (y) => (axisScale.y === "log" ? (y <= 0 ? null : Math.log10(y)) : y);
@@ -68,14 +68,13 @@ const toMath = (x, y) => {
 };
 
 /* ===============================
-   Grid & Labels (Y-axis Labels Added)
+   Grid & Labels
 ================================ */
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const factor = getUnitFactor();
   const isTrig = factor !== 1;
 
-  // Background Grid
   ctx.strokeStyle = "#eef2f8"; ctx.lineWidth = 1;
   for (let x = origin.x % scale; x < canvas.width; x += scale) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -84,18 +83,15 @@ function drawGrid() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
   }
 
-  // Axes
   ctx.strokeStyle = "#444"; ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y);
   ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height);
   ctx.stroke();
 
-  // Labels
   ctx.fillStyle = "#333"; ctx.font = "12px Arial";
   ctx.textAlign = "center";
   
-  // X Labels
   const nLeft = Math.floor(origin.x / scale);
   const nRight = Math.floor((canvas.width - origin.x) / scale);
   for (let i = -nLeft; i <= nRight; i++) {
@@ -104,7 +100,6 @@ function drawGrid() {
     ctx.fillText(label, origin.x + i * scale, origin.y + 18);
   }
 
-  // Y Labels (Added)
   ctx.textAlign = "right"; ctx.textBaseline = "middle";
   const nUp = Math.floor(origin.y / scale);
   const nDown = Math.floor((canvas.height - origin.y) / scale);
@@ -115,7 +110,7 @@ function drawGrid() {
 }
 
 /* ===============================
-   Plot & Intercepts (Fixed Alignment)
+   Plot & Intercepts
 ================================ */
 function markIntercepts(fn) {
   ctx.fillStyle = "#000";
@@ -125,7 +120,6 @@ function markIntercepts(fn) {
     try {
       const y1 = fn.func(x); const y2 = fn.func(x + step);
       if (y1 * y2 <= 0) {
-        // Linear interpolation for exact zero
         const exactX = x - y1 * (step / (y2 - y1));
         const p = toCanvas(exactX, 0);
         if (p && p.x >= 0 && p.x <= canvas.width) {
@@ -137,8 +131,9 @@ function markIntercepts(fn) {
 }
 
 function plotFunctions() {
+  const colors = ["#1e88e5", "#ff5722", "#4caf50"];
   functions.forEach((fn, idx) => {
-    ctx.strokeStyle = "#1e88e5"; ctx.lineWidth = 2.5;
+    ctx.strokeStyle = colors[idx % colors.length]; ctx.lineWidth = 2.5;
     ctx.beginPath();
     let started = false;
     for (let px = 0; px < canvas.width; px++) {
@@ -156,53 +151,82 @@ function plotFunctions() {
 }
 
 /* ===============================
-   Cursor & Red Floating Box (Vertical & Large Font)
+   수정된 커서 정보 박스 (넘침 방지)
 ================================ */
 function drawCursor() {
   if (mouse.x === null || functions.length === 0) return;
   const m = toMath(mouse.x, mouse.y);
-  let cx = m.x; let cy = (cursorMode === "follow") ? functions[0].func(cx) : m.y;
+  let cx = m.x;
+  let cy = (cursorMode === "follow") ? functions[0].func(cx) : m.y;
   const p = toCanvas(cx, cy);
   if (!p) return;
 
-  // Crosshair
+  // 십자선 가이드
   ctx.setLineDash([4, 4]); ctx.strokeStyle = "#bbb";
   ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x, canvas.height);
   ctx.moveTo(0, p.y); ctx.lineTo(canvas.width, p.y); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Info Box Config
-  const boxW = 240; 
-  const lineH = 22;
-  const boxH = 20 + (functions.length * (cursorMode === "follow" ? lineH * 3 : lineH * 2));
-  let bx = p.x + 15; let by = p.y - boxH - 15;
+  // 박스 크기 동적 계산
+  const lineH = 22; // 한 줄당 높이
+  const boxPadding = 12;
+  const numFunctions = functions.length;
+  const linesPerFunc = (cursorMode === "follow") ? 4 : 3; // 함수명, X, Y + (Slope)
+  
+  const boxW = 260; // 넉넉한 너비
+  const boxH = (numFunctions * linesPerFunc * lineH) + (boxPadding * 2);
+  
+  // 박스 위치 결정 (캔버스 경계 감지)
+  let bx = p.x + 15;
+  let by = p.y - boxH - 15;
   if (bx + boxW > canvas.width) bx = p.x - boxW - 15;
   if (by < 0) by = p.y + 15;
+  if (by + boxH > canvas.height) by = canvas.height - boxH - 10;
 
-  ctx.fillStyle = "rgba(255, 255, 255, 0.95)"; ctx.strokeStyle = "#ff0000"; ctx.lineWidth = 2;
-  ctx.fillRect(bx, by, boxW, boxH); ctx.strokeRect(bx, by, boxW, boxH);
+  // 박스 배경 및 테두리 (빨간색 테두리)
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.strokeStyle = "#ff0000";
+  ctx.lineWidth = 2;
+  ctx.fillRect(bx, by, boxW, boxH);
+  ctx.strokeRect(bx, by, boxW, boxH);
 
-  // Text Styling (Red & Large)
-  ctx.fillStyle = "#ff0000"; ctx.font = "bold 14px Arial"; ctx.textAlign = "left";
-  let ty = by + 20;
+  // 텍스트 출력
+  ctx.font = "bold 14px Arial";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  
+  let currentY = by + boxPadding;
 
   functions.forEach((fn, i) => {
     const fy = (cursorMode === "follow") ? fn.func(cx) : cy;
     const isTrig = isTriFunction(fn);
-    const xVal = isTrig ? `${cx.toFixed(3)} rad` : cx.toFixed(3);
+    const xText = isTrig ? `${cx.toFixed(3)} rad` : cx.toFixed(3);
     
-    ctx.fillText(`[Function f${i+1}]`, bx + 10, ty); ty += lineH;
-    ctx.fillText(`X: ${xVal}`, bx + 20, ty); ty += lineH;
-    ctx.fillText(`Y: ${fy.toFixed(4)}`, bx + 20, ty); ty += lineH;
+    // 1. 함수 제목
+    ctx.fillStyle = "#ff0000";
+    ctx.fillText(`[Function f${i+1}]`, bx + boxPadding, currentY);
+    currentY += lineH;
+
+    // 2. X값
+    ctx.fillStyle = "#333";
+    ctx.fillText(`X: ${xText}`, bx + boxPadding + 10, currentY);
+    currentY += lineH;
+
+    // 3. Y값
+    ctx.fillText(`Y: ${fy.toFixed(4)}`, bx + boxPadding + 10, currentY);
+    currentY += lineH;
     
+    // 4. Slope (Follow 모드일 때만)
     if (cursorMode === "follow") {
       const slope = (fn.func(cx + 0.001) - fn.func(cx - 0.001)) / 0.002;
-      ctx.fillText(`Slope: ${slope.toFixed(4)}`, bx + 20, ty); ty += lineH;
+      ctx.fillText(`Slope: ${slope.toFixed(4)}`, bx + boxPadding + 10, currentY);
+      currentY += lineH;
     }
-    ty += 5; // spacing between functions
+    
+    currentY += 5; // 함수 간 여백
   });
 
-  // HTML Update
+  // 하단 Analysis 섹션 업데이트
   const isTrig = isTriFunction(functions[0]);
   const deg = (cx * 180 / Math.PI).toFixed(2);
   analysisOutput.innerHTML = `<strong>Current:</strong> X=${cx.toFixed(4)}${isTrig ? ` (${deg}°)` : ""}, Y=${cy.toFixed(4)}`;
@@ -215,14 +239,15 @@ function render() { drawGrid(); plotFunctions(); drawCursor(); }
 
 canvas.addEventListener("mousemove", e => {
   const r = canvas.getBoundingClientRect();
-  mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+  mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+  mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
   render();
 });
 
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
   scale *= e.deltaY < 0 ? 1.1 : 0.9;
-  if (scale < 10) scale = 10;
+  if (scale < 5) scale = 5;
   render();
 });
 
@@ -237,4 +262,5 @@ modeInputs.forEach(r => r.addEventListener("change", e => { cursorMode = e.targe
 xScaleSelect.addEventListener("change", () => { axisScale.x = xScaleSelect.value; render(); });
 yScaleSelect.addEventListener("change", () => { axisScale.y = yScaleSelect.value; render(); });
 
+// 초기 렌더링
 render();
