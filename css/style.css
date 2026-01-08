@@ -119,6 +119,42 @@ body {
 }
 
 /* ===============================
+   Left Sidebar Text
+================================ */
+.left-sidebar {
+  padding: 16px;
+}
+
+.left-sidebar .sidebar-text {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: #4a4a4a;
+}
+
+.left-sidebar .sidebar-text h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1b2a6f; /* 헤더 톤과 맞춤 */
+}
+
+.left-sidebar .sidebar-text p {
+  margin-bottom: 12px;
+}
+
+.left-sidebar .sidebar-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* 살짝 강조되는 마지막 문단용 */
+.left-sidebar .sidebar-text p em {
+  font-style: normal;
+  color: #1b2a6f;
+  font-weight: 500;
+}
+
+/* ===============================
    Converter Layout
 ================================ */
 .converter-layout {
