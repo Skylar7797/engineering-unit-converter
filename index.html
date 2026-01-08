@@ -8,7 +8,7 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-1VBV3J3DVG');
-  
+
   function trackPage(path, title) {
     gtag('event', 'page_view', {
       page_path: path,
@@ -21,10 +21,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/style.css">
 </head>
-
-  
 <body>
-  
+
 <!-- HEADER -->
 <header class="site-header">
   <div class="header-inner">
@@ -55,18 +53,18 @@
     <section class="main-container">
       <div class="workbench">
 
-      <!-- LEFT STACK -->
-      <div class="tool-stack">
-        <section class="tool-panel">
-          <h2>Unit Converter</h2>        
-          <div class="converter-layout">
-        
-            <!-- LEFT: PARAMETER LIST -->
-            <aside class="converter-params" id="paramList">
-              <!-- JS에서 자동 생성 -->
-            </aside>
-        
-            <!-- RIGHT: CONVERSION -->
+        <!-- LEFT STACK -->
+        <div class="tool-stack">
+          <section class="tool-panel">
+            <h2>Unit Converter</h2>        
+            <div class="converter-layout">
+
+              <!-- LEFT: PARAMETER LIST -->
+              <aside class="converter-params" id="paramList">
+                <!-- JS에서 자동 생성 -->
+              </aside>
+
+              <!-- RIGHT: CONVERSION -->
               <div class="converter-work">
 
                 <!-- Enter Value -->
@@ -91,91 +89,76 @@
                 </div>
 
               </div>
-        
-          </div>
-        
-        </section>
-  
-        <section class="tool-panel">
-          <h2>Scientific Calculator</h2>
-          <div id="calculator">
 
-          <!-- HISTORY -->
-          <div id="calc-history" class="calc-history"></div>
-        
-          <!-- DISPLAY -->
-          <div class="calc-display">
-            <input
-              type="text"
-              id="calc-input"
-              value="0"
-             
-            />
-            <div id="angle-mode" class="angle-mode">DEG</div>
-          </div>
-        
-          <!-- BUTTONS -->
-          <div class="calc-buttons">
-        
-            <!-- Row 0 : MODE -->
-            <button data-key="SHIFT" class="shift">SHIFT</button>
-            <button data-key="ANS">ANS</button>
-            <button data-key="π">π</button>
-            <button data-key="EXP">EXP</button>
-            <button data-key="DEL">DEL</button>
-          
-            <!-- Row 1 -->
-            <button data-key="sin">sin</button>
-            <button data-key="cos">cos</button>
-            <button data-key="tan">tan</button>
-            <button data-key="(">(</button>
-            <button data-key=")">)</button>
-          
-            <!-- Row 2 -->
-            <button data-key="log">log</button>
-            <button data-key="ln">ln</button>
-            <button data-key="√">√</button>
-            <button data-key="pow">xʸ</button>
-            <button data-key="x2">x²</button>
-          
-            <!-- Row 3 -->
-            <button data-key="7">7</button>
-            <button data-key="8">8</button>
-            <button data-key="9">9</button>
-            <button data-key="/">÷</button>
-            <button data-key="C">C</button>
-          
-            <!-- Row 4 -->
-            <button data-key="4">4</button>
-            <button data-key="5">5</button>
-            <button data-key="6">6</button>
-            <button data-key="*">×</button>
-            <button data-key="-">−</button>
-          
-            <!-- Row 5 -->
-            <button data-key="1">1</button>
-            <button data-key="2">2</button>
-            <button data-key="3">3</button>
-            <button data-key="+">+</button>
-            <button data-key="=" class="equal">=</button>
-          
-            <!-- Row 6 -->
-            <button data-key="0" class="zero">0</button>
-            <button data-key=".">.</button>
-        
-          </div>
-            
+            </div>
+          </section>
+
+          <section class="tool-panel">
+            <h2>Scientific Calculator</h2>
+            <div id="calculator">
+
+              <!-- HISTORY -->
+              <div id="calc-history" class="calc-history"></div>
+
+              <!-- DISPLAY -->
+              <div class="calc-display">
+                <input type="text" id="calc-input" value="0"/>
+                <div id="angle-mode" class="angle-mode">DEG</div>
+              </div>
+
+              <!-- BUTTONS -->
+              <div class="calc-buttons">
+
+                <button data-key="SHIFT" class="shift">SHIFT</button>
+                <button data-key="ANS">ANS</button>
+                <button data-key="π">π</button>
+                <button data-key="EXP">EXP</button>
+                <button data-key="DEL">DEL</button>
+
+                <button data-key="sin">sin</button>
+                <button data-key="cos">cos</button>
+                <button data-key="tan">tan</button>
+                <button data-key="(">(</button>
+                <button data-key=")">)</button>
+
+                <button data-key="log">log</button>
+                <button data-key="ln">ln</button>
+                <button data-key="√">√</button>
+                <button data-key="pow">xʸ</button>
+                <button data-key="x2">x²</button>
+
+                <button data-key="7">7</button>
+                <button data-key="8">8</button>
+                <button data-key="9">9</button>
+                <button data-key="/">÷</button>
+                <button data-key="C">C</button>
+
+                <button data-key="4">4</button>
+                <button data-key="5">5</button>
+                <button data-key="6">6</button>
+                <button data-key="*">×</button>
+                <button data-key="-">−</button>
+
+                <button data-key="1">1</button>
+                <button data-key="2">2</button>
+                <button data-key="3">3</button>
+                <button data-key="+">+</button>
+                <button data-key="=" class="equal">=</button>
+
+                <button data-key="0" class="zero">0</button>
+                <button data-key=".">.</button>
+
+              </div>
+            </div>
+          </section>
         </div>
 
-        </section>
-      </div>
-  
-      <!-- RIGHT MEMO -->
-      <aside class="memo-panel">
-        <h2>Notes</h2>
-        <textarea class="memo"></textarea>
-      </aside>
-    
+        <!-- RIGHT MEMO -->
+        <aside class="memo-panel">
+          <h2>Notes</h2>
+          <textarea class="memo"></textarea>
+        </aside>
+
       </div>
     </section>
 
@@ -198,17 +181,8 @@
   </div>
 </footer>
 
-
 <script src="js/converter.js"></script>
 <script src="js/calculator.js"></script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
