@@ -50,6 +50,17 @@
 
       <section class="tool-panel">
         <h2>Function Plotter</h2>
+        <!-- MODE SELECT -->
+        <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+          <label>
+            <input type="radio" name="cursorMode" value="follow" checked>
+            Follow Function
+          </label>
+          <label>
+            <input type="radio" name="cursorMode" value="free">
+            Free Cursor
+          </label>
+        </div>
 
         <div class="convert-input">
           <input type="text" id="functionInput"
