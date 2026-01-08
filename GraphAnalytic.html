@@ -14,15 +14,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/style.css">
 <style>
-  /* 추가된 스타일링 */
+  /* 추가 분석 UI 스타일링 */
   .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px; }
-  .analysis-card { padding: 10px; border: 1px solid #eee; border-radius: 4px; background: #fff; }
-  .analysis-card h4 { margin: 0 0 8px 0; font-size: 14px; color: #1e88e5; }
-  .data-table-container { margin-top: 20px; max-height: 250px; overflow: auto; border: 1px solid #ddd; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
-  th { background: #f4f7f9; position: sticky; top: 0; }
-  .export-btn { background: #4caf50; margin-left: 10px; }
+  .analysis-card { padding: 12px; border: 1px solid #e1e8ed; border-radius: 6px; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .analysis-card h4 { margin: 0 0 8px 0; font-size: 13px; color: #1e88e5; text-transform: uppercase; letter-spacing: 0.5px; }
+  .analysis-card div { font-family: 'Courier New', monospace; font-weight: bold; font-size: 15px; color: #333; }
+  
+  .data-table-container { margin-top: 15px; max-height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
+  th { background: #f8fbff; position: sticky; top: 0; z-index: 10; }
+  
+  .action-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+  .btn-save { background-color: #455a64 !important; }
+  .btn-csv { background-color: #2e7d32 !important; }
 </style>
 </head>
 
@@ -51,13 +56,11 @@
       <div class="sidebar-text">
         <h3>Graph Analytic</h3>
           <p>
-            Graph Analytic in Engineering Workbench is a comprehensive real-time graph visualization and analysis platform tailored for engineers, students, and data enthusiasts. It enables dynamic plotting of a wide range of mathematical functions, including trigonometric (sin, cos, tan), exponential, logarithmic, polynomial, and composite functions. Users can explore function behaviors with flexible X and Y axis scales in linear or logarithmic modes, providing both detailed local insights and broad-range analysis. The tool supports multiple cursor modes: a function-following cursor for precise slope and derivative evaluation, and a free cursor for general coordinate inspection. Users can plot up to three functions simultaneously, compare them visually, and instantly analyze zero-crossings, extrema, and slope trends. Floating info boxes provide real-time numerical feedback, including coordinates, derivatives, and unit conversions between radians and degrees.
+            Plot up to 3 functions simultaneously by separating them with commas. 
+            (e.g., <code>sin(x), cos(x), x^2/10</code>)
           </p>
           <p>
-            Optimized for high-resolution rendering and smooth updates, Graph Analytic ensures accurate display even for complex functions. Preset engineering and mathematical functions allow quick exploration, while user-defined inputs enable complete customization. The tool’s interface is designed for clarity, interactivity, and efficiency, making it suitable for educational purposes, engineering design, research, and data analysis. Advanced features such as automatic extrema detection, integration and differentiation visualization, and interactive zooming and panning are under active development. Future updates will continue to expand functionality, improve usability, and provide a more robust experience for precise and intuitive function analysis.
-          </p>
-          <p>
-            By combining real-time plotting, interactive analysis, and clear visualization, Graph Analytic empowers users to explore, analyze, and understand mathematical functions thoroughly. Our ongoing commitment is to enhance the platform with advanced analytical tools, performance optimizations, and user-friendly improvements, ensuring that engineers, researchers, and students can rely on Graph Analytic as a powerful, accurate, and versatile component of the Engineering Workbench suite.
+            Each function is rendered in a unique color (Blue, Orange, Green). The cursor will provide real-time slope and coordinate data for all active plots.
           </p>
       </div>
     </aside>
@@ -66,9 +69,9 @@
       <h1>Graph Analytic</h1>
 
       <section class="tool-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <h2>Function Plotter</h2>
-          <button class="convert-btn" id="saveImgBtn" style="background:#555;">Save as Image</button>
+          <button class="convert-btn btn-save" id="saveImgBtn">Download Image (PNG)</button>
         </div>
 
         <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
@@ -92,48 +95,48 @@
         </div>
 
         <div class="convert-input">
-          <input type="text" id="functionInput" placeholder="f1(x), f2(x), f3(x) (e.g. sin(x), cos(2*x), x/2)" />
+          <input type="text" id="functionInput" placeholder="f1(x), f2(x), f3(x)" />
           <button class="convert-btn" id="plotBtn">Plot</button>
         </div>
 
         <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-          <button class="convert-btn preset" data-fn="sin(x), cos(x), tan(x)">Trig Set</button>
-          <button class="convert-btn preset" data-fn="x, x^2, x^3">Polynomials</button>
-          <button class="convert-btn preset" data-fn="exp(-x^2), exp(-x), ln(x)">Growth/Decay</button>
+          <button class="convert-btn preset" data-fn="sin(x), cos(x), sin(x)/x">Trig Set</button>
+          <button class="convert-btn preset" data-fn="x, x^2, x^3">Powers</button>
+          <button class="convert-btn preset" data-fn="exp(-x), ln(x), 1/x">Log/Exp</button>
         </div>
 
-        <canvas id="graphCanvas" width="900" height="450" style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px; border:1px solid #ddd;"></canvas>
+        <canvas id="graphCanvas" width="900" height="450" style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px; cursor: crosshair;"></canvas>
       </section>
 
       <section class="tool-panel" style="margin-top:24px;">
-        <h2>Detailed Analysis</h2>
+        <h2>Deep Analysis (Current Point)</h2>
         <div id="analysisOutput">
            <div class="analysis-grid">
-              <div class="analysis-card"><h4>Coordinates</h4><div id="val-coord">-</div></div>
-              <div class="analysis-card"><h4>Slope (f1)</h4><div id="val-slope">-</div></div>
-              <div class="analysis-card"><h4>Intercepts (f1)</h4><div id="val-intercepts">-</div></div>
-              <div class="analysis-card"><h4>Unit Conv.</h4><div id="val-unit">-</div></div>
+              <div class="analysis-card"><h4>Coordinates (f1)</h4><div id="val-coord">-</div></div>
+              <div class="analysis-card"><h4>Instant Slope (f1)</h4><div id="val-slope">-</div></div>
+              <div class="analysis-card"><h4>Polar/Unit</h4><div id="val-unit">-</div></div>
+              <div class="analysis-card"><h4>Axis Mode</h4><div id="val-axis">Linear</div></div>
            </div>
         </div>
       </section>
 
       <section class="tool-panel" style="margin-top:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h2>Data Points (Visible Range)</h2>
-          <button class="convert-btn export-btn" id="exportCsvBtn">Export CSV</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2>Data Points Summary</h2>
+          <button class="convert-btn btn-csv" id="exportCsvBtn">Export to CSV</button>
         </div>
         <div class="data-table-container">
           <table id="dataTable">
             <thead>
               <tr>
-                <th>X Value</th>
+                <th>X (Math)</th>
                 <th>f1(x)</th>
                 <th>f2(x)</th>
                 <th>f3(x)</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="4">Plot a function to see data points.</td></tr>
+              <tr><td colspan="4">Please plot functions to generate data.</td></tr>
             </tbody>
           </table>
         </div>
@@ -146,7 +149,7 @@
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <a href="/about.html">About</a> | <a href="/privacy.html">Privacy</a> | <a href="/contact.html">Contact</a>
+    <a href="/about.html">About</a> | <a href="/privacy.html">Privacy Policy</a> | <a href="/contact.html">Contact</a>
     <span style="margin-left:auto; opacity:0.8;">© 2026 Engineering Workbench</span>
   </div>
 </footer>
