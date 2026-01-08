@@ -1,5 +1,5 @@
 /* ===============================
-   Graph Analytic - Final (Integrated)
+   Graph Analytic - Final (Corrected)
 ================================ */
 
 const canvas = document.getElementById("graphCanvas");
@@ -16,15 +16,11 @@ const presetButtons = document.querySelectorAll(".preset");
    State
 ================================ */
 let functions = [];
-let scale = 40;
+let scale = 60; // 기본 확대 정도
 let origin = { x: canvas.width / 2, y: canvas.height / 2 };
 let mouse = { x: null, y: null };
 let cursorMode = "follow";
 const colors = ["#1e88e5", "#e53935", "#43a047"];
-
-/* ===============================
-   Axis Scale
-================================ */
 let axisScale = { x: "linear", y: "linear" };
 
 /* ===============================
@@ -126,42 +122,40 @@ function drawGrid() {
   // axis labels
   ctx.fillStyle = "#000";
   ctx.font = "12px system-ui";
+
+  // X-axis
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-
-  const step = scale;
-  const nLeft = Math.floor(origin.x / step);
-  const nRight = Math.floor((canvas.width - origin.x) / step);
-
+  const nLeft = Math.floor(origin.x / scale);
+  const nRight = Math.floor((canvas.width - origin.x) / scale);
   for (let i = -nLeft; i <= nRight; i++) {
     if (i === 0) continue;
-    const xPos = origin.x + i * step;
-
+    const xPos = origin.x + i * scale;
     let label = i;
+
     if (functions.some(f => /sin|cos/.test(f.expr))) {
-      const piFrac = i / 2;
-      if (piFrac === 1) label = "π/2";
-      else if (piFrac === 2) label = "π";
-      else if (piFrac === 3) label = "3π/2";
-      else if (piFrac === 4) label = "2π";
-      else if (piFrac === -1) label = "-π/2";
-      else if (piFrac === -2) label = "-π";
-      else if (piFrac === -3) label = "-3π/2";
-      else if (piFrac === -4) label = "-2π";
-      else label = `${piFrac}π`;
+      label = (i / 2 === 1) ? "π/2" :
+              (i / 2 === 2) ? "π" :
+              (i / 2 === 3) ? "3π/2" :
+              (i / 2 === 4) ? "2π" :
+              (i / 2 === -1) ? "-π/2" :
+              (i / 2 === -2) ? "-π" :
+              (i / 2 === -3) ? "-3π/2" :
+              (i / 2 === -4) ? "-2π" :
+              (i / 2) + "π";
     }
 
     ctx.fillText(label, xPos, origin.y + 4);
   }
 
-  // y-axis
+  // Y-axis
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  const nUp = Math.floor(origin.y / step);
-  const nDown = Math.floor((canvas.height - origin.y) / step);
+  const nUp = Math.floor(origin.y / scale);
+  const nDown = Math.floor((canvas.height - origin.y) / scale);
   for (let i = -nUp; i <= nDown; i++) {
     if (i === 0) continue;
-    const yPos = origin.y - i * step;
+    const yPos = origin.y - i * scale;
     ctx.fillText(i, origin.x - 4, yPos);
   }
 
@@ -192,15 +186,15 @@ function plotFunctions() {
         started = false;
         continue;
       }
+
       const p = toCanvas(m.x, y);
       if (!p) {
         started = false;
         continue;
       }
-      if (!started) {
-        ctx.moveTo(p.x, p.y);
-        started = true;
-      } else ctx.lineTo(p.x, p.y);
+      if (!started) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+      started = true;
     }
 
     ctx.stroke();
@@ -283,11 +277,13 @@ function drawCursor() {
   functions.forEach((fn, i) => {
     try {
       const fy = cursorMode === "follow" ? fn.func(cx) : cy;
-      const slope =
-        (fn.func(cx + 1e-4) - fn.func(cx - 1e-4)) / 2e-4;
+      let slope = NaN;
+      if (cursorMode === "follow") {
+        slope = (fn.func(cx + 1e-4) - fn.func(cx - 1e-4)) / 2e-4;
+      }
       ctx.fillStyle = colors[i];
       ctx.fillText(
-        `f${i + 1}(x)=${fy.toFixed(4)}, dy/dx=${slope.toFixed(4)}`,
+        `f${i + 1}(x)=${fy.toFixed(4)}${cursorMode === "follow" ? ", dy/dx=" + slope.toFixed(4) : ""}`,
         boxX + 8,
         textY
       );
@@ -300,11 +296,11 @@ function drawCursor() {
   functions.forEach((fn, i) => {
     try {
       const fy = cursorMode === "follow" ? fn.func(cx) : cy;
-      const slope =
-        (fn.func(cx + 1e-3) - fn.func(cx - 1e-3)) / 2e-3;
+      let slope = NaN;
+      if (cursorMode === "follow") slope = (fn.func(cx + 1e-3) - fn.func(cx - 1e-3)) / 2e-3;
       html += `<span style="color:${colors[i]}">f${i + 1}(x)=${fy.toFixed(
         4
-      )}, slope=${slope.toFixed(4)}</span><br>`;
+      )}${cursorMode === "follow" ? ", slope=" + slope.toFixed(4) : ""}</span><br>`;
     } catch {}
   });
   html += `<em>Scale: ${scale.toFixed(1)} px/unit</em>`;
@@ -329,45 +325,30 @@ canvas.addEventListener("mousemove", e => {
   mouse.y = e.clientY - r.top;
   render();
 });
-
 canvas.addEventListener("mouseleave", () => {
   mouse.x = mouse.y = null;
   render();
 });
-
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
   scale *= e.deltaY < 0 ? 1.1 : 0.9;
   render();
 });
-
 plotBtn.addEventListener("click", () => {
   const exprs = functionInput.value.split(",").slice(0, 3);
   functions = exprs.map(e => ({ expr: e.trim(), func: parseFunction(e.trim()) }));
   render();
 });
-
 modeInputs.forEach(radio => {
   radio.addEventListener("change", e => {
     cursorMode = e.target.value;
     render();
   });
 });
-
-xScaleSelect.addEventListener("change", () => {
-  axisScale.x = xScaleSelect.value;
-  render();
-});
-yScaleSelect.addEventListener("change", () => {
-  axisScale.y = yScaleSelect.value;
-  render();
-});
-
+xScaleSelect.addEventListener("change", () => { axisScale.x = xScaleSelect.value; render(); });
+yScaleSelect.addEventListener("change", () => { axisScale.y = yScaleSelect.value; render(); });
 presetButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    functionInput.value = btn.dataset.fn;
-    plotBtn.click();
-  });
+  btn.addEventListener("click", () => { functionInput.value = btn.dataset.fn; plotBtn.click(); });
 });
 
 /* ===============================
