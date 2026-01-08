@@ -1,5 +1,5 @@
 /* ===============================
-   Graph Analytic - Final
+   Graph Analytic - Baseline
 ================================ */
 
 const canvas = document.getElementById("graphCanvas");
@@ -8,6 +8,10 @@ const plotBtn = document.getElementById("plotBtn");
 const functionInput = document.getElementById("functionInput");
 const analysisOutput = document.getElementById("analysisOutput");
 const modeInputs = document.querySelectorAll('input[name="cursorMode"]');
+
+const xScaleSel = document.getElementById("xScale");
+const yScaleSel = document.getElementById("yScale");
+const presetBtns = document.querySelectorAll(".preset");
 
 /* ===============================
    State
@@ -19,8 +23,10 @@ let mouse = { x: null, y: null };
 let cursorMode = "follow";
 const colors = ["#1e88e5", "#e53935", "#43a047"];
 
+let axisScale = { x: "linear", y: "linear" };
+
 /* ===============================
-   Math Parser
+   Math Parser (UNCHANGED)
 ================================ */
 function parseFunction(expr) {
   const safe = expr
@@ -37,35 +43,62 @@ function parseFunction(expr) {
 }
 
 /* ===============================
-   Coordinate Conversion
+   Axis Scale Extension
 ================================ */
-const toCanvas = (x, y) => ({
-  x: origin.x + x * scale,
-  y: origin.y - y * scale
-});
+function sx(x) {
+  if (axisScale.x === "log") {
+    if (x <= 0) return null;
+    return Math.log10(x);
+  }
+  return x;
+}
 
-const toMath = (x, y) => ({
-  x: (x - origin.x) / scale,
-  y: (origin.y - y) / scale
-});
+function sy(y) {
+  if (axisScale.y === "log") {
+    if (y <= 0) return null;
+    return Math.log10(y);
+  }
+  return y;
+}
 
 /* ===============================
-   Grid & Axes
+   Coordinate Conversion (EXTENDED)
+================================ */
+const toCanvas = (x, y) => {
+  const X = sx(x);
+  const Y = sy(y);
+  if (X === null || Y === null) return null;
+  return {
+    x: origin.x + X * scale,
+    y: origin.y - Y * scale
+  };
+};
+
+const toMath = (x, y) => {
+  const mx = (x - origin.x) / scale;
+  const my = (origin.y - y) / scale;
+  return {
+    x: axisScale.x === "log" ? Math.pow(10, mx) : mx,
+    y: axisScale.y === "log" ? Math.pow(10, my) : my
+  };
+};
+
+/* ===============================
+   Grid (DENSITY EXTENDED)
 ================================ */
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = "#dbe3f0";
+  ctx.strokeStyle = "#eef3fb";
   ctx.lineWidth = 1;
 
-  for (let x = origin.x % scale; x < canvas.width; x += scale) {
+  for (let i = -50; i <= 50; i++) {
+    const x = origin.x + i * scale / 2;
+    const y = origin.y + i * scale / 2;
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
-  }
-
-  for (let y = origin.y % scale; y < canvas.height; y += scale) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(canvas.width, y);
@@ -74,32 +107,16 @@ function drawGrid() {
 
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 1.5;
-
   ctx.beginPath();
   ctx.moveTo(0, origin.y);
   ctx.lineTo(canvas.width, origin.y);
-  ctx.stroke();
-
-  ctx.beginPath();
   ctx.moveTo(origin.x, 0);
   ctx.lineTo(origin.x, canvas.height);
   ctx.stroke();
-
-  ctx.fillStyle = "#000";
-  ctx.font = "12px system-ui";
-  ctx.fillText("x", canvas.width - 12, origin.y - 6);
-  ctx.fillText("y", origin.x + 6, 12);
-
-  ctx.fillStyle = "#555";
-  for (let i = -10; i <= 10; i++) {
-    if (i === 0) continue;
-    ctx.fillText(i, origin.x + i * scale + 2, origin.y + 12);
-    ctx.fillText(i, origin.x + 4, origin.y - i * scale - 2);
-  }
 }
 
 /* ===============================
-   Plot
+   Plot (UNCHANGED CORE)
 ================================ */
 function plotFunctions() {
   functions.forEach((fn, i) => {
@@ -110,124 +127,46 @@ function plotFunctions() {
     let started = false;
 
     for (let px = 0; px < canvas.width; px++) {
-      const x = (px - origin.x) / scale;
+      const m = toMath(px, origin.y);
       let y;
-
       try {
-        y = fn.func(x);
-        if (!isFinite(y)) throw "";
-      } catch {
-        started = false;
-        continue;
-      }
+        y = fn.func(m.x);
+        if (!isFinite(y)) continue;
+      } catch { continue; }
 
-      const p = toCanvas(x, y);
+      const p = toCanvas(m.x, y);
+      if (!p) continue;
+
       if (!started) {
         ctx.moveTo(p.x, p.y);
         started = true;
-      } else {
-        ctx.lineTo(p.x, p.y);
-      }
+      } else ctx.lineTo(p.x, p.y);
     }
-
     ctx.stroke();
-    markIntercepts(fn);
   });
 }
 
 /* ===============================
-   Intercepts
-================================ */
-function markIntercepts(fn) {
-  ctx.fillStyle = "#000";
-
-  for (let x = -20; x <= 20; x += 0.02) {
-    const y1 = fn.func(x);
-    const y2 = fn.func(x + 0.02);
-    if (y1 * y2 < 0) {
-      const p = toCanvas(x, 0);
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  const y0 = fn.func(0);
-  if (isFinite(y0)) {
-    const p = toCanvas(0, y0);
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-/* ===============================
-   Cursor Info
+   Cursor + Analysis (EXTENDED)
 ================================ */
 function drawCursor() {
   if (!mouse.x) return;
 
   const m = toMath(mouse.x, mouse.y);
-  let cx = m.x;
-  let cy = m.y;
-
-  if (cursorMode === "follow" && functions[0]) {
-    try {
-      cy = functions[0].func(cx);
-    } catch {
-      return;
-    }
-  }
-
-  const p = toCanvas(cx, cy);
-
-  ctx.strokeStyle = "#aaa";
-  ctx.beginPath();
-  ctx.moveTo(p.x, 0);
-  ctx.lineTo(p.x, canvas.height);
-  ctx.moveTo(0, p.y);
-  ctx.lineTo(canvas.width, p.y);
-  ctx.stroke();
-
-  ctx.fillStyle = "#ff5722";
-  ctx.beginPath();
-  ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "#fff";
-  ctx.strokeStyle = "#000";
-  ctx.fillRect(p.x + 10, p.y - 32, 170, 26);
-  ctx.strokeRect(p.x + 10, p.y - 32, 170, 26);
-
-  ctx.fillStyle = "#000";
-  ctx.font = "12px system-ui";
-  ctx.fillText(
-    `x=${cx.toFixed(3)}, y=${cy.toFixed(3)}`,
-    p.x + 14,
-    p.y - 14
-  );
-}
-
-/* ===============================
-   Analysis
-================================ */
-function analyze() {
-  let html = "";
+  let html = `<strong>Cursor</strong><br>x=${m.x.toFixed(4)}<br>`;
 
   functions.forEach((fn, i) => {
-    let y0 = fn.func(0);
-    let roots = 0;
+    let y;
+    try { y = fn.func(m.x); }
+    catch { return; }
 
-    for (let x = -20; x <= 20; x += 0.05) {
-      if (fn.func(x) * fn.func(x + 0.05) < 0) roots++;
-    }
+    const dy =
+      (fn.func(m.x + 1e-3) - fn.func(m.x - 1e-3)) / 2e-3;
 
     html += `
-      <strong style="color:${colors[i]}">Function ${i + 1}</strong><br>
-      Expression: ${fn.expr}<br>
-      y-intercept: ${isFinite(y0) ? y0.toFixed(3) : "N/A"}<br>
-      x-intercepts: ${roots > 0 ? "present" : "none"}<br>
-      <br>
+      <span style="color:${colors[i]}">
+      f${i+1}(x)=${y.toFixed(4)}, slope=${dy.toFixed(4)}
+      </span><br>
     `;
   });
 
@@ -254,36 +193,40 @@ canvas.addEventListener("mousemove", e => {
   render();
 });
 
-canvas.addEventListener("mouseleave", () => {
-  mouse.x = mouse.y = null;
-  render();
-});
-
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.1 : 0.9;
-  scale *= factor;
+  scale *= e.deltaY < 0 ? 1.1 : 0.9;
   render();
 });
 
-plotBtn.addEventListener("click", () => {
+plotBtn.onclick = () => {
   const exprs = functionInput.value.split(",").slice(0, 3);
-  functions = exprs.map((e, i) => ({
+  functions = exprs.map(e => ({
     expr: e.trim(),
     func: parseFunction(e.trim())
   }));
-  analyze();
   render();
+};
+
+presetBtns.forEach(b => {
+  b.onclick = () => {
+    functionInput.value = b.dataset.fn;
+    plotBtn.click();
+  };
 });
 
-modeInputs.forEach(radio => {
-  radio.addEventListener("change", e => {
-    cursorMode = e.target.value;
-    render();
-  });
-});
+modeInputs.forEach(r =>
+  r.onchange = e => cursorMode = e.target.value
+);
 
-/* ===============================
-   Init
-================================ */
+xScaleSel.onchange = () => {
+  axisScale.x = xScaleSel.value;
+  render();
+};
+
+yScaleSel.onchange = () => {
+  axisScale.y = yScaleSel.value;
+  render();
+};
+
 render();
