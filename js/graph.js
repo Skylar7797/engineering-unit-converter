@@ -1,5 +1,5 @@
 /* ===============================
-   Graph Analytic - Tri Functions Fixed (Rad/Deg & Info Box)
+   Graph Analytic - Full Restored Version
 ================================ */
 
 const canvas = document.getElementById("graphCanvas");
@@ -16,15 +16,15 @@ const presetButtons = document.querySelectorAll(".preset");
    State
 ================================ */
 let functions = [];
-let scale = 60; // px per unit
+let scale = 60; 
 let origin = { x: canvas.width / 2, y: canvas.height / 2 };
 let mouse = { x: null, y: null };
 let cursorMode = "follow";
-const colors = ["#1e88e5", "#e53935", "#43a047"];
+const boxColors = ["#1e88e5", "#e53935", "#43a047"]; // f1, f2, f3 색상
 let axisScale = { x: "linear", y: "linear" };
 
 /* ===============================
-   Math Parser
+   Math Parser (Restored)
 ================================ */
 function parseFunction(expr) {
   const safe = expr
@@ -32,9 +32,9 @@ function parseFunction(expr) {
     .replace(/sin/g, "Math.sin")
     .replace(/cos/g, "Math.cos")
     .replace(/tan/g, "Math.tan")
-    .replace(/cot/g, "x=>1/Math.tan(x)")
-    .replace(/sec/g, "x=>1/Math.cos(x)")
-    .replace(/csc/g, "x=>1/Math.sin(x)")
+    .replace(/cot/g, "(x => 1/Math.tan(x))")
+    .replace(/sec/g, "(x => 1/Math.cos(x))")
+    .replace(/csc/g, "(x => 1/Math.sin(x))")
     .replace(/log/g, "Math.log10")
     .replace(/ln/g, "Math.log")
     .replace(/exp/g, "Math.exp")
@@ -42,52 +42,46 @@ function parseFunction(expr) {
   return new Function("x", `return ${safe}`);
 }
 
-/* ===============================
-   Axis Transform
-================================ */
-function tx(x) {
-  if (axisScale.x === "log") return x <= 0 ? null : Math.log10(x);
-  return x;
-}
-function ty(y) {
-  if (axisScale.y === "log") return y <= 0 ? null : Math.log10(y);
-  return y;
+function isTriFunction(fn) {
+  return /sin|cos|tan|cot|sec|csc/.test(fn.expr);
 }
 
+// 핵심 수정: 삼각함수 여부에 따른 단위 배수
+const getUnitFactor = () => (functions.some(isTriFunction) ? Math.PI : 1);
+
 /* ===============================
-   Coordinate Conversion
+   Coordinate Conversion (PI Fixed)
 ================================ */
+function tx(x) { if (axisScale.x === "log") return x <= 0 ? null : Math.log10(x); return x; }
+function ty(y) { if (axisScale.y === "log") return y <= 0 ? null : Math.log10(y); return y; }
+
 const toCanvas = (x, y) => {
-  const X = tx(x);
-  const Y = ty(y);
+  const factor = getUnitFactor();
+  const X = tx(x); const Y = ty(y);
   if (X === null || Y === null) return null;
-  return { x: origin.x + X * scale, y: origin.y - Y * scale };
+  return { x: origin.x + (X / factor) * scale, y: origin.y - Y * scale };
 };
+
 const toMath = (x, y) => {
+  const factor = getUnitFactor();
   const mx = (x - origin.x) / scale;
   const my = (origin.y - y) / scale;
   return {
-    x: axisScale.x === "log" ? Math.pow(10, mx) : mx,
+    x: axisScale.x === "log" ? Math.pow(10, mx * factor) : mx * factor,
     y: axisScale.y === "log" ? Math.pow(10, my) : my
   };
 };
 
 /* ===============================
-   Detect Tri Functions
-================================ */
-function isTriFunction(fn) {
-  return /sin|cos|tan|cot|sec|csc/.test(fn.expr);
-}
-
-/* ===============================
-   Grid & Axes
+   Grid & Axes (Restored Minor Grid)
 ================================ */
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const factor = getUnitFactor();
+  const isTrig = factor !== 1;
 
   // minor grid
-  ctx.strokeStyle = "#edf2fa";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#edf2fa"; ctx.lineWidth = 1;
   const minor = scale / 2;
   for (let x = origin.x % minor; x < canvas.width; x += minor) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -112,52 +106,40 @@ function drawGrid() {
   ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height);
   ctx.stroke();
 
-  // axis labels
+  // labels
   ctx.fillStyle = "#000"; ctx.font = "12px system-ui";
-  ctx.textAlign = "center"; ctx.textBaseline = "top";
-
+  ctx.textAlign = "center";
   const nLeft = Math.floor(origin.x / scale);
   const nRight = Math.floor((canvas.width - origin.x) / scale);
   for (let i = -nLeft; i <= nRight; i++) {
     if (i === 0) continue;
-    const xPos = origin.x + i * scale;
-    let label = i;
-    if (functions.some(isTriFunction)) {
-      const pi = Math.PI;
-      const val = i * 1; // 단위 scaling
-      if (val === 0) label = "0";
-      else if (val === 0.5) label = "π/2";
-      else if (val === 1) label = "π";
-      else if (val === 1.5) label = "3π/2";
-      else if (val === 2) label = "2π";
-      else label = `${val}π`;
-    }
-    ctx.fillText(label, xPos, origin.y + 4);
+    let label = isTrig ? (i === 1 ? "π" : i === -1 ? "-π" : i + "π") : i;
+    ctx.fillText(label, origin.x + i * scale, origin.y + 16);
   }
-
-  ctx.textAlign = "right"; ctx.textBaseline = "middle";
-  const nUp = Math.floor(origin.y / scale);
-  const nDown = Math.floor((canvas.height - origin.y) / scale);
-  for (let i = -nUp; i <= nDown; i++) {
-    if (i === 0) continue;
-    const yPos = origin.y - i * scale;
-    ctx.fillText(i, origin.x - 4, yPos);
-  }
-
-  ctx.textAlign = "left"; ctx.textBaseline = "top";
-  ctx.fillText("x", canvas.width - 12, origin.y + 4);
-  ctx.fillText("y", origin.x + 4, 2);
 }
 
 /* ===============================
-   Plot Functions
+   Plot & Intercepts (Restored)
 ================================ */
-function plotFunctions() {
-  functions.forEach((fn, i) => {
-    ctx.strokeStyle = "#1e88e5"; // 항상 하늘 파랑
-    ctx.lineWidth = 2; ctx.beginPath();
-    let started = false;
+function markIntercepts(fn) {
+  ctx.fillStyle = "#000";
+  const factor = getUnitFactor();
+  // 넉넉한 범위 탐색
+  for (let x = -20 * factor; x <= 20 * factor; x += 0.05 * factor) {
+    try {
+      const y1 = fn.func(x); const y2 = fn.func(x + 0.05 * factor);
+      if (y1 * y2 < 0) {
+        const p = toCanvas(x, 0); if (p) { ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill(); }
+      }
+    } catch {}
+  }
+}
 
+function plotFunctions() {
+  functions.forEach((fn, idx) => {
+    ctx.strokeStyle = boxColors[idx % 3]; ctx.lineWidth = 2;
+    ctx.beginPath();
+    let started = false;
     for (let px = 0; px < canvas.width; px++) {
       const m = toMath(px, origin.y);
       let y;
@@ -167,95 +149,90 @@ function plotFunctions() {
       if (!started) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
       started = true;
     }
-    ctx.stroke(); markIntercepts(fn);
+    ctx.stroke();
+    markIntercepts(fn);
   });
 }
 
 /* ===============================
-   Intercepts
-================================ */
-function markIntercepts(fn) {
-  ctx.fillStyle = "#000";
-  for (let x = -20; x <= 20; x += 0.05) {
-    try {
-      const y1 = fn.func(x);
-      const y2 = fn.func(x + 0.05);
-      if (y1 * y2 < 0) {
-        const p = toCanvas(x, 0); if (!p) continue;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
-      }
-    } catch {}
-  }
-}
-
-/* ===============================
-   Cursor & Info Box
+   Cursor & Info Box (Full Restored)
 ================================ */
 function drawCursor() {
-  if (!mouse.x) return;
-  let m = toMath(mouse.x, mouse.y); let cx = m.x; let cy = m.y;
-  if (cursorMode === "follow" && functions[0]) { try { cy = functions[0].func(cx); } catch {} }
+  if (mouse.x === null) return;
+  const m = toMath(mouse.x, mouse.y);
+  let cx = m.x; let cy = m.y;
+  
+  if (cursorMode === "follow" && functions[0]) {
+    try { cy = functions[0].func(cx); } catch {}
+  }
+  
   const p = toCanvas(cx, cy); if (!p) return;
 
-  // crosshair
-  ctx.strokeStyle = "#aaa"; ctx.lineWidth = 1;
+  // Crosshair
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = "#aaa";
   ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x, canvas.height);
   ctx.moveTo(0, p.y); ctx.lineTo(canvas.width, p.y); ctx.stroke();
+  ctx.setLineDash([]);
 
-  // point
+  // Point
   ctx.fillStyle = "#ff5722"; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
 
-  // floating info box
-  const boxX = p.x + 12; const boxY = p.y - 48; const boxW = 220; const boxH = 50 + functions.length*18;
-  ctx.fillStyle = "#fff"; ctx.strokeStyle = "#000"; ctx.lineWidth = 1;
-  ctx.fillRect(boxX, boxY, boxW, boxH); ctx.strokeRect(boxX, boxY, boxW, boxH);
+  // Floating Info Box on Canvas
+  const boxW = 220; const boxH = 40 + functions.length * 20;
+  let bx = p.x + 10; let by = p.y - boxH - 10;
+  if (bx + boxW > canvas.width) bx = p.x - boxW - 10;
+  if (by < 0) by = p.y + 10;
 
-  let textY = boxY + 14;
-  const boxColors = ["#39ff14","#ff073a","#1e90ff"]; // green/red/blue
-  functions.forEach((fn,i)=>{
-    try{
-      const fy = cursorMode==="follow"?fn.func(cx):cy;
-      let slope = cursorMode==="follow"? (fn.func(cx+1e-4)-fn.func(cx-1e-4))/2e-4 : NaN;
-      let xDisplay = isTriFunction(fn)? `${cx.toFixed(4)} rad / ${(cx*180/Math.PI).toFixed(2)}°` : cx.toFixed(4);
-      ctx.fillStyle = boxColors[i]; ctx.fillText(`f${i+1}: x=${xDisplay}, y=${fy.toFixed(4)}${cursorMode==="follow"? ", dy/dx=" + slope.toFixed(4):""}`, boxX+8,textY);
-      textY += 18;
-    }catch{}
+  ctx.fillStyle = "rgba(255, 255, 255, 0.9)"; ctx.strokeStyle = "#333";
+  ctx.fillRect(bx, by, boxW, boxH); ctx.strokeRect(bx, by, boxW, boxH);
+
+  ctx.fillStyle = "#000"; ctx.textAlign = "left"; ctx.font = "11px monospace";
+  let tyOffset = by + 15;
+  
+  functions.forEach((fn, i) => {
+    const fy = cursorMode === "follow" ? fn.func(cx) : cy;
+    const slope = (fn.func(cx + 0.0001) - fn.func(cx - 0.0001)) / 0.0002;
+    const xDisp = isTriFunction(fn) ? `${cx.toFixed(2)}rad` : cx.toFixed(2);
+    ctx.fillStyle = boxColors[i % 3];
+    ctx.fillText(`f${i+1}: x=${xDisp}, y=${fy.toFixed(3)}`, bx+8, tyOffset);
+    if(cursorMode === "follow") ctx.fillText(`    dy/dx=${slope.toFixed(3)}`, bx+8, tyOffset + 12);
+    tyOffset += 22;
   });
 
-  // HTML panel
-  let html = `<strong>Cursor</strong><br>`;
-  functions.forEach((fn,i)=>{
-    try{
-      const fy = cursorMode==="follow"?fn.func(cx):cy;
-      let slope = cursorMode==="follow"? (fn.func(cx+1e-3)-fn.func(cx-1e-3))/2e-3 : NaN;
-      let xDisplay = isTriFunction(fn)? `${cx.toFixed(4)} rad / ${(cx*180/Math.PI).toFixed(2)}°` : cx.toFixed(4);
-      html+= `<span style="color:${boxColors[i]}">f${i+1}: x=${xDisplay}, y=${fy.toFixed(4)}${cursorMode==="follow"? ", dy/dx=" + slope.toFixed(4):""}</span><br>`;
-    }catch{}
+  // HTML Analysis Panel
+  let html = `<strong>Cursor Analysis</strong><br>`;
+  functions.forEach((fn, i) => {
+    const fy = cursorMode === "follow" ? fn.func(cx) : cy;
+    const isTrig = isTriFunction(fn);
+    const xText = isTrig ? `${cx.toFixed(4)} rad / ${(cx*180/Math.PI).toFixed(2)}°` : cx.toFixed(4);
+    html += `<span style="color:${boxColors[i%3]}">f${i+1}: x=${xText}, y=${fy.toFixed(4)}</span><br>`;
   });
-  html+= `<em>Scale: ${scale.toFixed(1)} px/unit</em>`; analysisOutput.innerHTML = html;
+  analysisOutput.innerHTML = html;
 }
 
 /* ===============================
-   Render
+   Render & Events
 ================================ */
 function render() { drawGrid(); plotFunctions(); drawCursor(); }
 
-/* ===============================
-   Events
-================================ */
-canvas.addEventListener("mousemove",e=>{ const r=canvas.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; render(); });
-canvas.addEventListener("mouseleave",()=>{ mouse.x=mouse.y=null; render(); });
-canvas.addEventListener("wheel", e=>{ e.preventDefault(); scale*=e.deltaY<0?1.1:0.9; render(); });
-plotBtn.addEventListener("click",()=>{
-  const exprs=functionInput.value.split(",").slice(0,3);
-  functions=exprs.map(e=>({expr:e.trim(),func:parseFunction(e.trim())})); render();
+canvas.addEventListener("mousemove", e => {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+  render();
 });
-modeInputs.forEach(r=>{ r.addEventListener("change", e=>{ cursorMode=e.target.value; render(); }); });
-xScaleSelect.addEventListener("change",()=>{ axisScale.x=xScaleSelect.value; render(); });
-yScaleSelect.addEventListener("change",()=>{ axisScale.y=yScaleSelect.value; render(); });
-presetButtons.forEach(btn=>{ btn.addEventListener("click",()=>{ functionInput.value=btn.dataset.fn; plotBtn.click(); }); });
 
-/* ===============================
-   Init
-================================ */
+canvas.addEventListener("mouseleave", () => { mouse.x = null; render(); });
+canvas.addEventListener("wheel", e => { e.preventDefault(); scale *= e.deltaY < 0 ? 1.1 : 0.9; render(); });
+
+plotBtn.addEventListener("click", () => {
+  const exprs = functionInput.value.split(",").slice(0, 3);
+  functions = exprs.filter(e => e.trim() !== "").map(e => ({ expr: e.trim(), func: parseFunction(e.trim()) }));
+  render();
+});
+
+modeInputs.forEach(r => r.addEventListener("change", e => { cursorMode = e.target.value; render(); }));
+xScaleSelect.addEventListener("change", () => { axisScale.x = xScaleSelect.value; render(); });
+yScaleSelect.addEventListener("change", () => { axisScale.y = yScaleSelect.value; render(); });
+presetButtons.forEach(btn => btn.addEventListener("click", () => { functionInput.value = btn.dataset.fn; plotBtn.click(); }));
+
 render();
