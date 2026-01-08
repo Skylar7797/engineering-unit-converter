@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-1VBV3J3DVG');
-</script>
-
 <meta charset="UTF-8">
 <title>Graph Analytic | Engineering Workbench</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,76 +26,70 @@
 </nav>
 
 <main class="site-main">
-  <div class="main-layout">
+<div class="main-layout">
 
-    <aside class="sidebar left-sidebar">
-      <div class="sidebar-text">
-        <h3>Graph Analytic</h3>
-        <p>Function visualization with numerical and qualitative analysis.</p>
-        <p>Axes, zero-crossings, extrema, and slope behavior are explicitly shown.</p>
-      </div>
-    </aside>
+<section class="main-container">
+<h1>Graph Analytic</h1>
 
-    <section class="main-container">
-      <h1>Graph Analytic</h1>
+<section class="tool-panel">
 
-      <section class="tool-panel">
-        <h2>Function Plotter</h2>
-        <!-- MODE SELECT -->
-        <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
-          <label>
-            <input type="radio" name="cursorMode" value="follow" checked>
-            Follow Function
-          </label>
-          <label>
-            <input type="radio" name="cursorMode" value="free">
-            Free Cursor
-          </label>
-        </div>
+<h2>Function Plotter</h2>
 
-        <div class="convert-input">
-          <input type="text" id="functionInput"
-            placeholder="e.g. sin(x), x^2-4, exp(-x)" />
-          <button class="convert-btn" id="plotBtn">Plot</button>
-        </div>
+<!-- Cursor Mode -->
+<div style="display:flex; gap:12px;">
+  <label><input type="radio" name="cursorMode" value="follow" checked> Follow Function</label>
+  <label><input type="radio" name="cursorMode" value="free"> Free Cursor</label>
+</div>
 
-        <div style="display:flex; gap:8px; margin-top:12px;">
-          <input type="number" id="xmin" value="-10">
-          <input type="number" id="xmax" value="10">
-        </div>
+<!-- Axis Scale -->
+<div style="display:flex; gap:12px; margin-top:10px;">
+  <label>X-axis:
+    <select id="xScale">
+      <option value="linear">Linear</option>
+      <option value="log">Log</option>
+    </select>
+  </label>
 
-        <canvas
-          id="graphCanvas"
-          width="900"
-          height="450"
-          style="margin-top:16px; width:100%; background:#f8fbff; border-radius:4px;"
-        ></canvas>
-      </section>
+  <label>Y-axis:
+    <select id="yScale">
+      <option value="linear">Linear</option>
+      <option value="log">Log</option>
+    </select>
+  </label>
+</div>
 
-      <section class="tool-panel" style="margin-top:24px;">
-        <h2>Analysis</h2>
-        <div class="result-label" id="analysisOutput">
-          Awaiting function input.
-        </div>
-      </section>
-    </section>
+<!-- Function Input -->
+<div class="convert-input" style="margin-top:12px;">
+  <input type="text" id="functionInput"
+    placeholder="e.g. sin(x), x^2-4, exp(-x)" />
+  <button id="plotBtn" class="convert-btn">Plot</button>
+</div>
 
-    <aside class="sidebar right-sidebar"></aside>
-  </div>
+<!-- Preset Functions -->
+<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+  <button class="convert-btn preset" data-fn="exp(-x^2)">Gaussian</button>
+  <button class="convert-btn preset" data-fn="sin(x)">Wave</button>
+  <button class="convert-btn preset" data-fn="sin(x)/x">Sinc</button>
+  <button class="convert-btn preset" data-fn="exp(-x)*cos(2*x)">Damped</button>
+</div>
+
+<canvas
+  id="graphCanvas"
+  width="900"
+  height="450"
+  style="margin-top:16px; width:100%; background:#f8fbff;">
+</canvas>
+
+</section>
+
+<section class="tool-panel" style="margin-top:24px;">
+<h2>Analysis</h2>
+<div id="analysisOutput" class="result-label">Awaiting input</div>
+</section>
+
+</section>
+</div>
 </main>
-
-<footer class="site-footer">
-  <div class="footer-inner">
-    <a href="/about.html">About</a>
-    <span>|</span>
-    <a href="/privacy.html">Privacy Policy</a>
-    <span>|</span>
-    <a href="/contact.html">Contact</a>
-    <span style="margin-left:auto; opacity:0.8;">
-      © 2026 Engineering Workbench
-    </span>
-  </div>
-</footer>
 
 <script src="js/graph.js"></script>
 </body>
