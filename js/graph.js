@@ -1,5 +1,5 @@
 /* ===============================
-   Graph Analytic - Baseline
+   Graph Analytic - Final (Extended)
 ================================ */
 
 const canvas = document.getElementById("graphCanvas");
@@ -9,12 +9,12 @@ const functionInput = document.getElementById("functionInput");
 const analysisOutput = document.getElementById("analysisOutput");
 const modeInputs = document.querySelectorAll('input[name="cursorMode"]');
 
-const xScaleSel = document.getElementById("xScale");
-const yScaleSel = document.getElementById("yScale");
-const presetBtns = document.querySelectorAll(".preset");
+const xScaleSelect = document.getElementById("xScale");
+const yScaleSelect = document.getElementById("yScale");
+const presetButtons = document.querySelectorAll(".preset");
 
 /* ===============================
-   State
+   State (BASELINE 유지)
 ================================ */
 let functions = [];
 let scale = 40;
@@ -23,7 +23,13 @@ let mouse = { x: null, y: null };
 let cursorMode = "follow";
 const colors = ["#1e88e5", "#e53935", "#43a047"];
 
-let axisScale = { x: "linear", y: "linear" };
+/* ===============================
+   Axis Scale State (ADDED)
+================================ */
+let axisScale = {
+  x: "linear",
+  y: "linear"
+};
 
 /* ===============================
    Math Parser (UNCHANGED)
@@ -43,9 +49,9 @@ function parseFunction(expr) {
 }
 
 /* ===============================
-   Axis Scale Extension
+   Axis Transform (ADDED)
 ================================ */
-function sx(x) {
+function tx(x) {
   if (axisScale.x === "log") {
     if (x <= 0) return null;
     return Math.log10(x);
@@ -53,7 +59,7 @@ function sx(x) {
   return x;
 }
 
-function sy(y) {
+function ty(y) {
   if (axisScale.y === "log") {
     if (y <= 0) return null;
     return Math.log10(y);
@@ -65,9 +71,10 @@ function sy(y) {
    Coordinate Conversion (EXTENDED)
 ================================ */
 const toCanvas = (x, y) => {
-  const X = sx(x);
-  const Y = sy(y);
+  const X = tx(x);
+  const Y = ty(y);
   if (X === null || Y === null) return null;
+
   return {
     x: origin.x + X * scale,
     y: origin.y - Y * scale
@@ -77,6 +84,7 @@ const toCanvas = (x, y) => {
 const toMath = (x, y) => {
   const mx = (x - origin.x) / scale;
   const my = (origin.y - y) / scale;
+
   return {
     x: axisScale.x === "log" ? Math.pow(10, mx) : mx,
     y: axisScale.y === "log" ? Math.pow(10, my) : my
@@ -84,27 +92,49 @@ const toMath = (x, y) => {
 };
 
 /* ===============================
-   Grid (DENSITY EXTENDED)
+   Grid & Axes (DENSITY EXTENDED)
 ================================ */
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = "#eef3fb";
+  // minor grid
+  ctx.strokeStyle = "#edf2fa";
   ctx.lineWidth = 1;
 
-  for (let i = -50; i <= 50; i++) {
-    const x = origin.x + i * scale / 2;
-    const y = origin.y + i * scale / 2;
+  const minor = scale / 2;
+  for (let x = origin.x % minor; x < canvas.width; x += minor) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
+  }
+
+  for (let y = origin.y % minor; y < canvas.height; y += minor) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(canvas.width, y);
     ctx.stroke();
   }
 
+  // major grid
+  ctx.strokeStyle = "#dbe3f0";
+  ctx.lineWidth = 1.2;
+
+  for (let x = origin.x % scale; x < canvas.width; x += scale) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = origin.y % scale; y < canvas.height; y += scale) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  // axes
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -116,7 +146,7 @@ function drawGrid() {
 }
 
 /* ===============================
-   Plot (UNCHANGED CORE)
+   Plot (BASELINE 유지 + scale 적용)
 ================================ */
 function plotFunctions() {
   functions.forEach((fn, i) => {
@@ -129,43 +159,105 @@ function plotFunctions() {
     for (let px = 0; px < canvas.width; px++) {
       const m = toMath(px, origin.y);
       let y;
+
       try {
         y = fn.func(m.x);
-        if (!isFinite(y)) continue;
-      } catch { continue; }
+        if (!isFinite(y)) throw "";
+      } catch {
+        started = false;
+        continue;
+      }
 
       const p = toCanvas(m.x, y);
-      if (!p) continue;
+      if (!p) {
+        started = false;
+        continue;
+      }
 
       if (!started) {
         ctx.moveTo(p.x, p.y);
         started = true;
-      } else ctx.lineTo(p.x, p.y);
+      } else {
+        ctx.lineTo(p.x, p.y);
+      }
     }
+
     ctx.stroke();
+    markIntercepts(fn);
   });
 }
 
 /* ===============================
-   Cursor + Analysis (EXTENDED)
+   Intercepts (BASELINE 유지)
+================================ */
+function markIntercepts(fn) {
+  ctx.fillStyle = "#000";
+
+  for (let x = -20; x <= 20; x += 0.05) {
+    try {
+      const y1 = fn.func(x);
+      const y2 = fn.func(x + 0.05);
+      if (y1 * y2 < 0) {
+        const p = toCanvas(x, 0);
+        if (!p) continue;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } catch {}
+  }
+}
+
+/* ===============================
+   Cursor Info (EXTENDED ANALYSIS)
 ================================ */
 function drawCursor() {
   if (!mouse.x) return;
 
   const m = toMath(mouse.x, mouse.y);
-  let html = `<strong>Cursor</strong><br>x=${m.x.toFixed(4)}<br>`;
+  let cx = m.x;
+  let cy = m.y;
+
+  if (cursorMode === "follow" && functions[0]) {
+    try {
+      cy = functions[0].func(cx);
+    } catch {
+      return;
+    }
+  }
+
+  const p = toCanvas(cx, cy);
+  if (!p) return;
+
+  ctx.strokeStyle = "#aaa";
+  ctx.beginPath();
+  ctx.moveTo(p.x, 0);
+  ctx.lineTo(p.x, canvas.height);
+  ctx.moveTo(0, p.y);
+  ctx.lineTo(canvas.width, p.y);
+  ctx.stroke();
+
+  ctx.fillStyle = "#ff5722";
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // realtime analysis
+  let html = `<strong>Cursor</strong><br>x=${cx.toFixed(4)}<br>`;
 
   functions.forEach((fn, i) => {
-    let y;
-    try { y = fn.func(m.x); }
-    catch { return; }
-
-    const dy =
-      (fn.func(m.x + 1e-3) - fn.func(m.x - 1e-3)) / 2e-3;
+    let y, slope;
+    try {
+      y = fn.func(cx);
+      slope =
+        (fn.func(cx + 1e-3) - fn.func(cx - 1e-3)) / 2e-3;
+    } catch {
+      return;
+    }
 
     html += `
       <span style="color:${colors[i]}">
-      f${i+1}(x)=${y.toFixed(4)}, slope=${dy.toFixed(4)}
+      f${i + 1}(x)=${y.toFixed(4)}, slope=${slope.toFixed(4)}
       </span><br>
     `;
   });
@@ -188,45 +280,4 @@ function render() {
 ================================ */
 canvas.addEventListener("mousemove", e => {
   const r = canvas.getBoundingClientRect();
-  mouse.x = e.clientX - r.left;
-  mouse.y = e.clientY - r.top;
-  render();
-});
-
-canvas.addEventListener("wheel", e => {
-  e.preventDefault();
-  scale *= e.deltaY < 0 ? 1.1 : 0.9;
-  render();
-});
-
-plotBtn.onclick = () => {
-  const exprs = functionInput.value.split(",").slice(0, 3);
-  functions = exprs.map(e => ({
-    expr: e.trim(),
-    func: parseFunction(e.trim())
-  }));
-  render();
-};
-
-presetBtns.forEach(b => {
-  b.onclick = () => {
-    functionInput.value = b.dataset.fn;
-    plotBtn.click();
-  };
-});
-
-modeInputs.forEach(r =>
-  r.onchange = e => cursorMode = e.target.value
-);
-
-xScaleSel.onchange = () => {
-  axisScale.x = xScaleSel.value;
-  render();
-};
-
-yScaleSel.onchange = () => {
-  axisScale.y = yScaleSel.value;
-  render();
-};
-
-render();
+  mouse.x =
