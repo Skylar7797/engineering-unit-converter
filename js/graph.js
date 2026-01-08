@@ -1,256 +1,277 @@
+/* ======================================================
+   Graph Analytic Engine - Engineering Workbench
+   ====================================================== */
+
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
-
 const input = document.getElementById("functionInput");
 const plotBtn = document.getElementById("plotBtn");
 const analysisOutput = document.getElementById("analysisOutput");
 
-const PAD = 60;
-let xmin = -10, xmax = 10;
-let ymin, ymax;
-
+/* ======================
+   Graph State
+====================== */
+let scale = 40;                 // px per unit
+let origin = { x: 0, y: 0 };    // graph origin (0,0) in canvas coords
 let func = null;
-let data = [];
+let points = [];
 
-const SAFE_MATH = {
-  sin: Math.sin, cos: Math.cos, tan: Math.tan,
-  log: Math.log10, ln: Math.log,
-  exp: Math.exp, sqrt: Math.sqrt,
-  abs: Math.abs, pi: Math.PI, e: Math.E
-};
+/* ======================
+   Utilities
+====================== */
+function resizeCanvas() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = 400;
+  origin.x = canvas.width / 2;
+  origin.y = canvas.height / 2;
+}
 
-/* ===============================
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  draw();
+});
+
+/* ======================
    Coordinate Transform
-================================ */
-function xToCanvas(x) {
-  return PAD + (x - xmin) * (canvas.width - 2 * PAD) / (xmax - xmin);
-}
-function yToCanvas(y) {
-  return canvas.height - PAD -
-    (y - ymin) * (canvas.height - 2 * PAD) / (ymax - ymin);
-}
-function canvasToX(cx) {
-  return xmin + (cx - PAD) * (xmax - xmin) / (canvas.width - 2 * PAD);
-}
-function canvasToY(cy) {
-  return ymin + (canvas.height - PAD - cy) * (ymax - ymin) / (canvas.height - 2 * PAD);
+====================== */
+function toCanvas(x, y) {
+  return {
+    x: origin.x + x * scale,
+    y: origin.y - y * scale
+  };
 }
 
-/* ===============================
-   Function Parsing
-================================ */
-function parseFunction(expr) {
-  let safe = expr
-    .replace(/\^/g, "**")
-    .replace(/([a-z]+)\(/gi, "SAFE_MATH.$1(");
-  return new Function("x", "SAFE_MATH", `return ${safe}`);
+function toMath(cx, cy) {
+  return {
+    x: (cx - origin.x) / scale,
+    y: (origin.y - cy) / scale
+  };
 }
 
-/* ===============================
-   Sampling
-================================ */
-function sample(f, n = 3000) {
-  const dx = (xmax - xmin) / n;
-  data = [];
-  for (let i = 0; i <= n; i++) {
-    const x = xmin + i * dx;
-    let y = NaN;
-    try { y = f(x, SAFE_MATH); } catch {}
-    data.push({ x, y });
-  }
-
-  const ys = data.filter(p => isFinite(p.y)).map(p => p.y);
-  ymin = Math.min(...ys);
-  ymax = Math.max(...ys);
-
-  const margin = (ymax - ymin) * 0.1;
-  ymin -= margin;
-  ymax += margin;
-}
-
-/* ===============================
+/* ======================
    Grid & Axes
-================================ */
+====================== */
 function drawGrid() {
-  ctx.strokeStyle = "#dde3f0";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const step = scale;
+  ctx.strokeStyle = "#e1e6ef";
   ctx.lineWidth = 1;
 
-  const xStep = (xmax - xmin) / 10;
-  const yStep = (ymax - ymin) / 10;
-
-  for (let i = 0; i <= 10; i++) {
-    const x = xmin + i * xStep;
-    const cx = xToCanvas(x);
+  for (let x = origin.x % step; x < canvas.width; x += step) {
     ctx.beginPath();
-    ctx.moveTo(cx, PAD);
-    ctx.lineTo(cx, canvas.height - PAD);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
     ctx.stroke();
   }
 
-  for (let i = 0; i <= 10; i++) {
-    const y = ymin + i * yStep;
-    const cy = yToCanvas(y);
+  for (let y = origin.y % step; y < canvas.height; y += step) {
     ctx.beginPath();
-    ctx.moveTo(PAD, cy);
-    ctx.lineTo(canvas.width - PAD, cy);
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
     ctx.stroke();
   }
-}
 
-function drawAxes() {
-  ctx.strokeStyle = "#444";
+  // Axes
+  ctx.strokeStyle = "#222";
   ctx.lineWidth = 1.5;
 
-  // Y-axis
-  if (xmin < 0 && xmax > 0) {
-    const cx = xToCanvas(0);
-    ctx.beginPath();
-    ctx.moveTo(cx, PAD);
-    ctx.lineTo(cx, canvas.height - PAD);
-    ctx.stroke();
-  }
+  ctx.beginPath();
+  ctx.moveTo(0, origin.y);
+  ctx.lineTo(canvas.width, origin.y);
+  ctx.stroke();
 
-  // X-axis
-  if (ymin < 0 && ymax > 0) {
-    const cy = yToCanvas(0);
-    ctx.beginPath();
-    ctx.moveTo(PAD, cy);
-    ctx.lineTo(canvas.width - PAD, cy);
-    ctx.stroke();
-  }
+  ctx.beginPath();
+  ctx.moveTo(origin.x, 0);
+  ctx.lineTo(origin.x, canvas.height);
+  ctx.stroke();
 
   // Axis labels
   ctx.fillStyle = "#222";
-  ctx.font = "13px system-ui";
-  ctx.fillText("x", canvas.width - PAD + 10, yToCanvas(0) + 4);
-  ctx.fillText("y", xToCanvas(0) - 10, PAD - 10);
+  ctx.font = "12px system-ui";
+  ctx.fillText("x", canvas.width - 12, origin.y - 6);
+  ctx.fillText("y", origin.x + 6, 12);
+
+  drawGridNumbers();
 }
 
-/* ===============================
-   Graph
-================================ */
-function drawGraph() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawGrid();
-  drawAxes();
+function drawGridNumbers() {
+  ctx.fillStyle = "#555";
+  ctx.font = "11px system-ui";
 
-  ctx.strokeStyle = "#1b2a6f";
+  for (let i = -Math.floor(origin.x / scale); i < canvas.width / scale; i++) {
+    if (i === 0) continue;
+    const p = toCanvas(i, 0);
+    ctx.fillText(i, p.x - 4, origin.y + 14);
+  }
+
+  for (let i = -Math.floor((canvas.height - origin.y) / scale); i < origin.y / scale; i++) {
+    if (i === 0) continue;
+    const p = toCanvas(0, i);
+    ctx.fillText(i, origin.x + 6, p.y + 4);
+  }
+}
+
+/* ======================
+   Function Parsing
+====================== */
+function parseFunction(expr) {
+  expr = expr.replace(/\^/g, "**");
+  return new Function("x", `return ${expr}`);
+}
+
+/* ======================
+   Plotting
+====================== */
+function computePoints() {
+  points = [];
+  for (let px = 0; px < canvas.width; px++) {
+    const { x } = toMath(px, 0);
+    let y;
+    try {
+      y = func(x);
+      if (isFinite(y)) points.push({ x, y });
+    } catch {}
+  }
+}
+
+function drawFunction() {
+  if (!points.length) return;
+
+  ctx.strokeStyle = "#1a4fd8";
   ctx.lineWidth = 2;
   ctx.beginPath();
 
-  let first = true;
-  data.forEach(p => {
-    if (!isFinite(p.y)) {
-      first = true;
-      return;
-    }
-    const cx = xToCanvas(p.x);
-    const cy = yToCanvas(p.y);
-    if (first) {
-      ctx.moveTo(cx, cy);
-      first = false;
-    } else {
-      ctx.lineTo(cx, cy);
+  points.forEach((p, i) => {
+    const c = toCanvas(p.x, p.y);
+    if (i === 0) ctx.moveTo(c.x, c.y);
+    else ctx.lineTo(c.x, c.y);
+  });
+
+  ctx.stroke();
+}
+
+/* ======================
+   Intercepts
+====================== */
+function drawIntercepts() {
+  ctx.fillStyle = "#d7263d";
+
+  points.forEach((p, i) => {
+    if (i === 0) return;
+    const prev = points[i - 1];
+
+    // x-intercept
+    if (p.y === 0 || (p.y * prev.y < 0)) {
+      const x0 = p.x;
+      const c = toCanvas(x0, 0);
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+      ctx.fill();
     }
   });
-  ctx.stroke();
 
-  drawIntercepts();
+  // y-intercept
+  try {
+    const y0 = func(0);
+    const c = toCanvas(0, y0);
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } catch {}
 }
 
-/* ===============================
-   Intercepts
-================================ */
-function drawIntercepts() {
-  ctx.fillStyle = "#d32f2f";
-  ctx.font = "12px system-ui";
-
-  for (let i = 1; i < data.length; i++) {
-    const p1 = data[i - 1];
-    const p2 = data[i];
-    if (p1.y * p2.y < 0) {
-      const x0 = p2.x;
-      const cx = xToCanvas(x0);
-      const cy = yToCanvas(0);
-      ctx.beginPath();
-      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillText(`(${x0.toFixed(2)}, 0)`, cx + 6, cy - 6);
-    }
-  }
-
-  if (xmin < 0 && xmax > 0) {
-    const y0 = func(0, SAFE_MATH);
-    if (isFinite(y0)) {
-      const cx = xToCanvas(0);
-      const cy = yToCanvas(y0);
-      ctx.beginPath();
-      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillText(`(0, ${y0.toFixed(2)})`, cx + 6, cy - 6);
-    }
-  }
-}
-
-/* ===============================
-   Hover Tooltip (Exact Match)
-================================ */
+/* ======================
+   Cursor Tracking
+====================== */
 canvas.addEventListener("mousemove", e => {
-  if (!data.length) return;
-
-  drawGraph();
+  if (!func) return;
+  draw();
 
   const rect = canvas.getBoundingClientRect();
   const cx = e.clientX - rect.left;
   const cy = e.clientY - rect.top;
+  const { x, y } = toMath(cx, cy);
 
-  if (cx < PAD || cx > canvas.width - PAD) return;
-  if (cy < PAD || cy > canvas.height - PAD) return;
+  let dy;
+  try {
+    const h = 1e-4;
+    dy = (func(x + h) - func(x - h)) / (2 * h);
+  } catch {}
 
-  const x = canvasToX(cx);
-  const y = func(x, SAFE_MATH);
+  const p = toCanvas(x, func(x));
 
-  if (!isFinite(y)) return;
-
-  const px = xToCanvas(x);
-  const py = yToCanvas(y);
-
-  const dx = 1e-4;
-  const slope = (func(x + dx, SAFE_MATH) - func(x - dx, SAFE_MATH)) / (2 * dx);
-
-  // Marker
-  ctx.fillStyle = "#000";
+  // marker
+  ctx.fillStyle = "#ff7a00";
   ctx.beginPath();
-  ctx.arc(px, py, 4, 0, Math.PI * 2);
+  ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
   ctx.fill();
 
-  // Tooltip
-  const lines = [
-    `x = ${x.toFixed(4)}`,
-    `y = ${y.toFixed(4)}`,
-    `dy/dx ≈ ${slope.toFixed(4)}`
-  ];
-
+  // info box
   ctx.fillStyle = "rgba(0,0,0,0.75)";
-  ctx.fillRect(px + 10, py - 55, 160, 50);
+  ctx.fillRect(cx + 10, cy + 10, 160, 60);
 
   ctx.fillStyle = "#fff";
   ctx.font = "12px system-ui";
-  lines.forEach((t, i) =>
-    ctx.fillText(t, px + 16, py - 36 + i * 14)
-  );
+  ctx.fillText(`x = ${x.toFixed(3)}`, cx + 16, cy + 28);
+  ctx.fillText(`y = ${func(x).toFixed(3)}`, cx + 16, cy + 44);
+  ctx.fillText(`dy/dx = ${dy?.toFixed(3)}`, cx + 16, cy + 60);
 });
 
-/* ===============================
-   Plot Trigger
-================================ */
+/* ======================
+   Zoom (Wheel)
+====================== */
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  scale *= e.deltaY < 0 ? 1.1 : 0.9;
+  scale = Math.max(10, Math.min(scale, 200));
+  draw();
+});
+
+/* ======================
+   Analysis
+====================== */
+function analyze() {
+  let min = Infinity, max = -Infinity;
+  points.forEach(p => {
+    min = Math.min(min, p.y);
+    max = Math.max(max, p.y);
+  });
+
+  analysisOutput.innerHTML = `
+    <strong>Domain:</strong> visible x-range<br>
+    <strong>Range:</strong> [${min.toFixed(3)}, ${max.toFixed(3)}]<br>
+    <strong>Scale:</strong> ${scale.toFixed(1)} px/unit
+  `;
+}
+
+/* ======================
+   Main Draw
+====================== */
+function draw() {
+  drawGrid();
+  if (func) {
+    computePoints();
+    drawFunction();
+    drawIntercepts();
+    analyze();
+  }
+}
+
+/* ======================
+   Events
+====================== */
 plotBtn.addEventListener("click", () => {
   try {
-    func = parseFunction(input.value.trim());
-    sample(func);
-    drawGraph();
-    analysisOutput.textContent = "Hover over the graph to inspect values.";
+    func = parseFunction(input.value);
+    draw();
   } catch {
-    analysisOutput.textContent = "Invalid function.";
+    analysisOutput.textContent = "Invalid function expression.";
   }
 });
+
+/* ======================
+   Init
+====================== */
+resizeCanvas();
+draw();
