@@ -18,14 +18,12 @@
 
 <body>
 
-<!-- HEADER -->
 <header class="site-header">
   <div class="header-inner">
     <div class="logo">Engineering Workbench</div>
   </div>
 </header>
 
-<!-- NAV -->
 <nav class="site-nav">
   <div class="nav-inner">
     <a href="/index.html" class="nav-link">Converter & Calculator</a>
@@ -36,51 +34,32 @@
   </div>
 </nav>
 
-<!-- MAIN -->
 <main class="site-main">
   <div class="main-layout">
 
-    <!-- LEFT SIDEBAR -->
     <aside class="sidebar left-sidebar">
       <div class="sidebar-text">
         <h3>Graph Analytic</h3>
-
-        <p>
-          This page provides interactive visualization of mathematical
-          functions and numerical relationships commonly encountered in
-          engineering analysis.
-        </p>
-
-        <p>
-          By directly observing function behavior, trends, and curvature,
-          complex relationships can be understood more intuitively than
-          through equations alone.
-        </p>
-
-        <p>
-          The tool is intended to support quick exploration rather than
-          formal plotting software.
-        </p>
-
+        <p>Interactive visualization and numerical analysis of mathematical functions.</p>
+        <p>Designed for engineering intuition, not presentation plotting.</p>
         <p><em>Visual insight often precedes correct reasoning.</em></p>
       </div>
     </aside>
 
-    <!-- CENTER CONTENT -->
     <section class="main-container">
       <h1>Graph Analytic</h1>
 
-      <!-- GRAPH PANEL -->
       <section class="tool-panel">
         <h2>Function Plotter</h2>
 
         <div class="convert-input">
-          <input
-            type="text"
-            id="functionInput"
-            placeholder="e.g. sin(x), x^2, exp(x)"
-          />
+          <input type="text" id="functionInput" placeholder="e.g. sin(x), x^2, exp(x)" />
           <button class="convert-btn" id="plotBtn">Plot</button>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <input type="number" id="xmin" placeholder="x min" value="-10">
+          <input type="number" id="xmax" placeholder="x max" value="10">
         </div>
 
         <canvas
@@ -91,7 +70,6 @@
         ></canvas>
       </section>
 
-      <!-- ANALYSIS OUTPUT -->
       <section class="tool-panel" style="margin-top:24px;">
         <h2>Analysis</h2>
         <div class="result-label" id="analysisOutput">
@@ -100,15 +78,11 @@
       </section>
     </section>
 
-    <!-- RIGHT SIDEBAR -->
-    <aside class="sidebar right-sidebar">
-      <!-- Ads or reserved -->
-    </aside>
+    <aside class="sidebar right-sidebar"></aside>
 
   </div>
 </main>
 
-<!-- FOOTER -->
 <footer class="site-footer">
   <div class="footer-inner">
     <a href="/about.html">About</a>
