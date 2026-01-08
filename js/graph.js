@@ -280,4 +280,62 @@ function render() {
 ================================ */
 canvas.addEventListener("mousemove", e => {
   const r = canvas.getBoundingClientRect();
-  mouse.x =
+  mouse.x = e.clientX - r.left;
+  mouse.y = e.clientY - r.top;
+  render();
+});
+
+canvas.addEventListener("mouseleave", () => {
+  mouse.x = mouse.y = null;
+  render();
+});
+
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  scale *= e.deltaY < 0 ? 1.1 : 0.9;
+  render();
+});
+
+plotBtn.addEventListener("click", () => {
+  const exprs = functionInput.value.split(",").slice(0, 3);
+  functions = exprs.map(e => ({
+    expr: e.trim(),
+    func: parseFunction(e.trim())
+  }));
+  render();
+});
+
+modeInputs.forEach(radio => {
+  radio.addEventListener("change", e => {
+    cursorMode = e.target.value;
+    render();
+  });
+});
+
+/* ===============================
+   Axis Scale Events (ADDED)
+================================ */
+xScaleSelect.addEventListener("change", () => {
+  axisScale.x = xScaleSelect.value;
+  render();
+});
+
+yScaleSelect.addEventListener("change", () => {
+  axisScale.y = yScaleSelect.value;
+  render();
+});
+
+/* ===============================
+   Preset Functions (ADDED)
+================================ */
+presetButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    functionInput.value = btn.dataset.fn;
+    plotBtn.click();
+  });
+});
+
+/* ===============================
+   Init
+================================ */
+render();
