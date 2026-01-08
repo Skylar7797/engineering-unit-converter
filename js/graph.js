@@ -4,12 +4,13 @@ const ctx = canvas.getContext("2d");
 const input = document.getElementById("functionInput");
 const plotBtn = document.getElementById("plotBtn");
 const analysisOutput = document.getElementById("analysisOutput");
-const xminInput = document.getElementById("xmin");
-const xmaxInput = document.getElementById("xmax");
 
-let functions = [];
-let graphData = [];
-let scaleMode = "linear"; // linear | logy
+const PAD = 50;
+let xmin = -10, xmax = 10;
+let ymin, ymax;
+
+let func = null;
+let data = [];
 
 const SAFE_MATH = {
   sin: Math.sin, cos: Math.cos, tan: Math.tan,
@@ -18,6 +19,23 @@ const SAFE_MATH = {
   abs: Math.abs, pi: Math.PI, e: Math.E
 };
 
+/* ===============================
+   Coordinate Transform
+================================ */
+function xToCanvas(x) {
+  return PAD + (x - xmin) * (canvas.width - 2 * PAD) / (xmax - xmin);
+}
+function yToCanvas(y) {
+  return canvas.height - PAD -
+    (y - ymin) * (canvas.height - 2 * PAD) / (ymax - ymin);
+}
+function canvasToX(cx) {
+  return xmin + (cx - PAD) * (xmax - xmin) / (canvas.width - 2 * PAD);
+}
+
+/* ===============================
+   Function Parsing
+================================ */
 function parseFunction(expr) {
   let safe = expr
     .replace(/\^/g, "**")
@@ -25,156 +43,157 @@ function parseFunction(expr) {
   return new Function("x", "SAFE_MATH", `return ${safe}`);
 }
 
-function sample(f, xmin, xmax, n = 1500) {
+/* ===============================
+   Sampling
+================================ */
+function sample(f, n = 2000) {
   const dx = (xmax - xmin) / n;
-  return Array.from({ length: n + 1 }, (_, i) => {
+  data = [];
+  for (let i = 0; i <= n; i++) {
     const x = xmin + i * dx;
     let y = NaN;
     try { y = f(x, SAFE_MATH); } catch {}
-    return { x, y };
-  });
+    data.push({ x, y });
+  }
+
+  const ys = data.filter(p => isFinite(p.y)).map(p => p.y);
+  ymin = Math.min(...ys);
+  ymax = Math.max(...ys);
 }
 
-function drawAxes(xmin, xmax, ymin, ymax, pad) {
+/* ===============================
+   Drawing
+================================ */
+function drawAxes() {
   ctx.strokeStyle = "#999";
   ctx.lineWidth = 1;
 
-  const zeroX = pad + (-xmin) * (canvas.width - 2 * pad) / (xmax - xmin);
-  const zeroY = canvas.height - pad - (-ymin) * (canvas.height - 2 * pad) / (ymax - ymin);
+  // Y-axis (x = 0)
+  if (xmin < 0 && xmax > 0) {
+    const cx = xToCanvas(0);
+    ctx.beginPath();
+    ctx.moveTo(cx, PAD);
+    ctx.lineTo(cx, canvas.height - PAD);
+    ctx.stroke();
+  }
 
-  ctx.beginPath();
-  if (zeroX > pad && zeroX < canvas.width - pad) {
-    ctx.moveTo(zeroX, pad);
-    ctx.lineTo(zeroX, canvas.height - pad);
+  // X-axis (y = 0)
+  if (ymin < 0 && ymax > 0) {
+    const cy = yToCanvas(0);
+    ctx.beginPath();
+    ctx.moveTo(PAD, cy);
+    ctx.lineTo(canvas.width - PAD, cy);
+    ctx.stroke();
   }
-  if (zeroY > pad && zeroY < canvas.height - pad) {
-    ctx.moveTo(pad, zeroY);
-    ctx.lineTo(canvas.width - pad, zeroY);
-  }
-  ctx.stroke();
 }
 
 function drawGraph() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawAxes();
 
-  const pad = 50;
-  const xmin = +xminInput.value;
-  const xmax = +xmaxInput.value;
+  ctx.strokeStyle = "#1b2a6f";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
 
-  let ys = [];
-  graphData.forEach(d =>
-    d.forEach(p => isFinite(p.y) && ys.push(p.y))
-  );
-
-  let ymin = Math.min(...ys);
-  let ymax = Math.max(...ys);
-
-  if (scaleMode === "logy") {
-    ymin = Math.max(1e-6, ymin);
-  }
-
-  drawAxes(xmin, xmax, ymin, ymax, pad);
-
-  graphData.forEach((data, idx) => {
-    ctx.beginPath();
-    ctx.strokeStyle = ["#1f4fd8", "#d81f1f", "#1fd85f"][idx % 3];
-    ctx.lineWidth = 2;
-
-    data.forEach((p, i) => {
-      if (!isFinite(p.y)) return;
-      let yVal = scaleMode === "logy" ? Math.log10(p.y) : p.y;
-
-      const cx = pad + (p.x - xmin) * (canvas.width - 2 * pad) / (xmax - xmin);
-      const cy = canvas.height - pad -
-        (yVal - ymin) * (canvas.height - 2 * pad) / (ymax - ymin);
-
-      i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
-    });
-
-    ctx.stroke();
-
-    // Zero-crossing markers
-    data.forEach((p, i) => {
-      if (i > 0 && p.y * data[i - 1].y < 0) {
-        const cx = pad + (p.x - xmin) * (canvas.width - 2 * pad) / (xmax - xmin);
-        const cy = canvas.height - pad -
-          (-ymin) * (canvas.height - 2 * pad) / (ymax - ymin);
-        ctx.fillStyle = "#000";
-        ctx.beginPath();
-        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    });
+  data.forEach((p, i) => {
+    if (!isFinite(p.y)) return;
+    const cx = xToCanvas(p.x);
+    const cy = yToCanvas(p.y);
+    i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
   });
+  ctx.stroke();
+
+  // Zero crossings
+  ctx.fillStyle = "#000";
+  for (let i = 1; i < data.length; i++) {
+    if (data[i - 1].y * data[i].y < 0) {
+      const cx = xToCanvas(data[i].x);
+      const cy = yToCanvas(0);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 }
 
-function analyze(data) {
+/* ===============================
+   Analysis
+================================ */
+function analyze() {
   let max = { y: -Infinity }, min = { y: Infinity };
   let zeros = [];
 
-  for (let i = 1; i < data.length - 1; i++) {
+  for (let i = 1; i < data.length; i++) {
     const p = data[i];
     if (!isFinite(p.y)) continue;
 
     if (p.y > max.y) max = p;
     if (p.y < min.y) min = p;
-
-    if (data[i - 1].y * p.y < 0) zeros.push(p.x.toFixed(3));
+    if (data[i - 1].y * p.y < 0) zeros.push(p.x.toFixed(4));
   }
 
-  return `
-Max: ${max.y.toFixed(4)} @ x=${max.x.toFixed(4)}<br>
-Min: ${min.y.toFixed(4)} @ x=${min.x.toFixed(4)}<br>
-Zero crossings: ${zeros.length ? zeros.join(", ") : "None"}
-`;
+  analysisOutput.innerHTML = `
+    Max: ${max.y.toFixed(4)} @ x=${max.x.toFixed(4)}<br>
+    Min: ${min.y.toFixed(4)} @ x=${min.x.toFixed(4)}<br>
+    Zero crossings: ${zeros.join(", ") || "None"}
+  `;
 }
 
-plotBtn.addEventListener("click", () => {
-  try {
-    functions = input.value.split(";").map(f => parseFunction(f.trim()));
-    graphData = functions.map(f =>
-      sample(f, +xminInput.value, +xmaxInput.value)
-    );
-    drawGraph();
-    analysisOutput.innerHTML = analyze(graphData[0]);
-  } catch {
-    analysisOutput.textContent = "Invalid function input.";
-  }
-});
+/* ===============================
+   Tooltip (Hover Info)
+================================ */
+canvas.addEventListener("mousemove", e => {
+  if (!data.length) return;
 
-/* === 클릭 위치에서 접선 기울기 표시 === */
-canvas.addEventListener("click", e => {
-  if (!graphData.length) return;
+  drawGraph();
 
   const rect = canvas.getBoundingClientRect();
-  const xRatio = (e.clientX - rect.left - 50) /
-    (canvas.width - 100);
-  const xVal = +xminInput.value +
-    xRatio * (+xmaxInput.value - +xminInput.value);
+  const cx = e.clientX - rect.left;
+  const x = canvasToX(cx);
 
-  const data = graphData[0];
-  const idx = data.findIndex(p => p.x > xVal);
+  const idx = data.findIndex(p => p.x > x);
   if (idx <= 0) return;
 
-  const slope = (data[idx].y - data[idx - 1].y) /
-                (data[idx].x - data[idx - 1].x);
+  const p1 = data[idx - 1];
+  const p2 = data[idx];
+  if (!isFinite(p1.y) || !isFinite(p2.y)) return;
 
-  analysisOutput.innerHTML += `<br>Tangent slope at x=${xVal.toFixed(3)} ≈ ${slope.toFixed(4)}`;
+  const slope = (p2.y - p1.y) / (p2.x - p1.x);
+  const cy = yToCanvas(p1.y);
+
+  // Marker
+  ctx.fillStyle = "#d32f2f";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Info box
+  const text = [
+    `x = ${x.toFixed(4)}`,
+    `y = ${p1.y.toFixed(4)}`,
+    `dy/dx ≈ ${slope.toFixed(4)}`
+  ];
+
+  ctx.fillStyle = "rgba(0,0,0,0.75)";
+  ctx.fillRect(cx + 10, cy - 50, 160, 48);
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "12px system-ui";
+  text.forEach((t, i) =>
+    ctx.fillText(t, cx + 16, cy - 32 + i * 14)
+  );
 });
 
-/* === CSV Export === */
-window.exportCSV = function () {
-  let csv = "x,y\n";
-  graphData[0].forEach(p => csv += `${p.x},${p.y}\n`);
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "graph_data.csv";
-  a.click();
-};
-
-/* === Log scale toggle === */
-window.toggleLogY = function () {
-  scaleMode = scaleMode === "linear" ? "logy" : "linear";
-  drawGraph();
-};
+/* ===============================
+   Plot Trigger
+================================ */
+plotBtn.addEventListener("click", () => {
+  try {
+    func = parseFunction(input.value.trim());
+    sample(func);
+    drawGraph();
+    analyze();
+  } catch {
+    analysisOutput.textContent = "Invalid function.";
+  }
+});
