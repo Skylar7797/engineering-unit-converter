@@ -73,10 +73,13 @@
           <h2>Function Plotter</h2>
           <button class="convert-btn btn-save" id="saveImgBtn">Download Image (PNG)</button>
         </div>
-
-        <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
-          <label><input type="radio" name="cursorMode" value="follow" checked> Follow Function</label>
+        
+        <div style="margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
+          <label><input type="radio" name="cursorMode" value="follow" checked> Follow Function (Click line to select)</label>
           <label><input type="radio" name="cursorMode" value="free"> Free Cursor</label>
+          <span style="margin-left: 20px; color: #64748b;">|</span>
+          <label><input type="checkbox" id="showXLine" checked> X-Axis Parallel (Horizontal)</label>
+          <label><input type="checkbox" id="showYLine" checked> Y-Axis Parallel (Vertical)</label>
         </div>
 
         <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
