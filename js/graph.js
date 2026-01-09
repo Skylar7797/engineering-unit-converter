@@ -1,6 +1,6 @@
-/* ===============================
-   Graph Analytic - UI/UX Perfected Version
-================================ */
+/* ==============================================
+   Graph Analytic - Integrated Professional Version
+   =============================================== */
 
 const canvas = document.getElementById("graphCanvas");
 const ctx = canvas.getContext("2d");
@@ -9,18 +9,20 @@ const saveImgBtn = document.getElementById("saveImgBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const functionInput = document.getElementById("functionInput");
 
-// 분석 필드
+// 가이드라인 및 모드 컨트롤
+const showXLine = document.getElementById("showXLine");
+const showYLine = document.getElementById("showYLine");
 const valCoord = document.getElementById("val-coord");
-const valSlope = document.getElementById("val-slope");
-const valUnit = document.getElementById("val-unit");
 
 let functions = [];
 let scale = 70; 
 let origin = { x: canvas.width / 2, y: canvas.height / 2 };
 let mouse = { x: null, y: null };
 let cursorMode = "follow"; 
+let targetFnIndex = 0; // 클릭으로 선택된 추적 대상 함수
 const colors = ["#1e88e5", "#ff5722", "#2e7d32"];
 
+// 1. 수식 파싱 엔진
 function parseFunction(expr) {
     if (!expr) return null;
     const safe = expr.trim()
@@ -43,12 +45,12 @@ const toMath = (x, y) => {
     return { x: ((x - origin.x) / scale) * factor, y: (origin.y - y) / scale };
 };
 
+// 2. 배경 그리드 렌더링
 function drawGrid() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const factor = getUnitFactor();
     const isTrig = factor !== 1;
 
-    // 그리드 선명도 개선
     ctx.strokeStyle = "#e2e8f0"; 
     ctx.lineWidth = 1;
     for (let x = origin.x % scale; x < canvas.width; x += scale) {
@@ -58,14 +60,12 @@ function drawGrid() {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
     }
 
-    // 축
     ctx.strokeStyle = "#334155"; ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y);
     ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height);
     ctx.stroke();
 
-    // 레이블 (X, Y축 숫자 모두 포함)
     ctx.fillStyle = "#64748b"; ctx.font = "12px Arial";
     ctx.textAlign = "center";
     const nLeft = Math.floor(origin.x / scale), nRight = Math.floor((canvas.width - origin.x) / scale);
@@ -82,9 +82,10 @@ function drawGrid() {
     }
 }
 
+// 3. 함수 그래프 렌더링
 function plotFunctions() {
     functions.forEach((fn, idx) => {
-        ctx.strokeStyle = colors[idx]; ctx.lineWidth = 2.5;
+        ctx.strokeStyle = colors[idx]; ctx.lineWidth = (idx === targetFnIndex && cursorMode === "follow") ? 4 : 2.5;
         ctx.beginPath();
         let started = false;
         for (let px = 0; px < canvas.width; px++) {
@@ -92,7 +93,7 @@ function plotFunctions() {
             let y;
             try { y = fn.func(m.x); if (!isFinite(y)) throw ""; } catch { started = false; continue; }
             const p = toCanvas(m.x, y);
-            if (!p || p.y < -100 || p.y > canvas.height + 100) { started = false; continue; }
+            if (!p || p.y < -500 || p.y > canvas.height + 500) { started = false; continue; }
             if (!started) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
             started = true;
         }
@@ -100,87 +101,88 @@ function plotFunctions() {
     });
 }
 
-/* --- 핵심 수정: 정보 박스 로직 --- */
+// 4. 커서 및 정보 박스 (핵심 수정)
 function drawCursor() {
     if (mouse.x === null || functions.length === 0) return;
     
     const m = toMath(mouse.x, mouse.y);
+    const activeFn = functions[targetFnIndex] || functions[0];
+    
     let cx = m.x;
-    let cy = (cursorMode === "follow") ? functions[0].func(cx) : m.y;
+    let cy = (cursorMode === "follow") ? activeFn.func(cx) : m.y;
     const p = toCanvas(cx, cy);
 
-    // 십자선
-    ctx.setLineDash([5, 5]); ctx.strokeStyle = "#cbd5e1";
-    ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x, canvas.height);
-    ctx.moveTo(0, p.y); ctx.lineTo(canvas.width, p.y); ctx.stroke();
+    // 가이드라인 그리기
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
+    if (showYLine.checked) { // 수직선 (X고정)
+        ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x, canvas.height); ctx.stroke();
+    }
+    if (showXLine.checked) { // 수평선 (Y고정)
+        ctx.beginPath(); ctx.moveTo(0, p.y); ctx.lineTo(canvas.width, p.y); ctx.stroke();
+    }
     ctx.setLineDash([]);
 
-    // 1. 텍스트 내용 미리 준비 및 최대 너비 측정
-    ctx.font = "bold 13px Courier New"; // 가변폭 방지를 위해 모노스페이스 계열 권장
-    const padding = 15;
-    const lineH = 20;
-    let maxContentWidth = 150; // 최소 너비
-
-    const displayData = functions.map((fn, i) => {
-        const fy = fn.func(cx);
-        const slope = (fn.func(cx + 0.001) - fn.func(cx - 0.001)) / 0.002;
-        const lines = [
-            { text: `[f${i+1}] ${fn.expr}`, color: colors[i], isTitle: true },
+    // 정보 데이터 구성
+    let displayLines = [];
+    if (cursorMode === "follow") {
+        const fy = activeFn.func(cx);
+        const slope = (activeFn.func(cx + 0.001) - activeFn.func(cx - 0.001)) / 0.002;
+        displayLines = [
+            { text: `[Focus: f${targetFnIndex + 1}]`, color: colors[targetFnIndex], isTitle: true },
             { text: ` X: ${cx.toFixed(4)}`, color: "#333" },
-            { text: ` Y: ${isFinite(fy) ? fy.toFixed(4) : "NaN"}`, color: "#333" }
+            { text: ` Y: ${isFinite(fy) ? fy.toFixed(4) : "NaN"}`, color: "#333" },
+            { text: ` Slope: ${slope.toFixed(4)}`, color: "#666" }
         ];
-        if (cursorMode === "follow") {
-            lines.push({ text: ` S: ${slope.toFixed(4)}`, color: "#666" });
-        }
-        
-        // 각 줄의 실제 캔버스 픽셀 너비 측정
-        lines.forEach(l => {
-            const metrics = ctx.measureText(l.text);
-            if (metrics.width > maxContentWidth) maxContentWidth = metrics.width;
+    } else {
+        displayLines.push({ text: `Cursor Pos`, color: "#1e293b", isTitle: true });
+        displayLines.push({ text: ` X: ${cx.toFixed(4)}`, color: "#333" });
+        functions.forEach((fn, i) => {
+            const valY = fn.func(cx);
+            displayLines.push({ text: ` f${i+1}(y): ${isFinite(valY) ? valY.toFixed(4) : "N/A"}`, color: colors[i] });
         });
-        return lines;
+    }
+
+    renderInfoBox(p.x, p.y, displayLines);
+    if(valCoord) valCoord.innerText = `(${cx.toFixed(3)}, ${cy.toFixed(3)})`;
+}
+
+// 정보 박스 UI 렌더러
+function renderInfoBox(px, py, lines) {
+    ctx.font = "bold 13px Courier New";
+    const padding = 12;
+    const lineH = 18;
+    let maxW = 150;
+    lines.forEach(l => {
+        const w = ctx.measureText(l.text).width;
+        if (w > maxW) maxW = w;
     });
 
-    // 2. 박스 크기 결정
-    const boxW = maxContentWidth + (padding * 2);
-    const boxH = (displayData.flat().length * lineH) + (padding * 2) + (functions.length - 1) * 10;
-    
-    // 3. 박스 위치 (넘침 방지)
-    let bx = p.x + 15;
-    let by = p.y - boxH - 15;
-    if (bx + boxW > canvas.width) bx = p.x - boxW - 15;
-    if (by < 0) by = p.y + 15;
-    if (by + boxH > canvas.height) by = canvas.height - boxH - 10;
+    const boxW = maxW + (padding * 2);
+    const boxH = (lines.length * lineH) + (padding * 2);
 
-    // 4. 박스 렌더링
+    let bx = px + 15;
+    let by = py - boxH - 15;
+    if (bx + boxW > canvas.width) bx = px - boxW - 15;
+    if (by < 0) by = py + 15;
+
     ctx.fillStyle = "rgba(255, 255, 255, 0.98)";
-    ctx.strokeStyle = "#ef4444"; // 빨간색 테두리
+    ctx.strokeStyle = (cursorMode === "follow") ? colors[targetFnIndex] : "#ef4444";
     ctx.lineWidth = 2;
     ctx.fillRect(bx, by, boxW, boxH);
     ctx.strokeRect(bx, by, boxW, boxH);
 
-    // 5. 텍스트 렌더링 (박스 내부 좌표 기준)
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    let currentY = by + padding;
-
-    displayData.forEach((group, gIdx) => {
-        group.forEach(line => {
-            ctx.fillStyle = line.color;
-            ctx.font = line.isTitle ? "bold 13px Arial" : "13px Courier New";
-            ctx.fillText(line.text, bx + padding, currentY);
-            currentY += lineH;
-        });
-        currentY += 10; // 함수 그룹 간 여백
+    lines.forEach((line, i) => {
+        ctx.fillStyle = line.color;
+        ctx.font = line.isTitle ? "bold 13px Arial" : "13px Courier New";
+        ctx.fillText(line.text, bx + padding, by + padding + (i * lineH));
     });
-
-    // 하단 Analysis 업데이트
-    if(valCoord) valCoord.innerText = `(${cx.toFixed(3)}, ${cy.toFixed(3)})`;
 }
 
 function render() { drawGrid(); plotFunctions(); drawCursor(); }
 
-// 이벤트 리스너
+// 5. 이벤트 리스너 통합
 canvas.addEventListener("mousemove", e => {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
@@ -188,34 +190,55 @@ canvas.addEventListener("mousemove", e => {
     render();
 });
 
+// 클릭 시 함수 선택 기능
+canvas.addEventListener("mousedown", e => {
+    if (cursorMode !== "follow" || functions.length === 0) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (canvas.width / r.width);
+    const my = (e.clientY - r.top) * (canvas.height / r.height);
+    const mathPos = toMath(mx, my);
+
+    let closestIdx = targetFnIndex;
+    let minDiff = 0.5; // 클릭 감지 허용 오차
+
+    functions.forEach((fn, i) => {
+        const yVal = fn.func(mathPos.x);
+        const diff = Math.abs(yVal - mathPos.y);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closestIdx = i;
+        }
+    });
+    targetFnIndex = closestIdx;
+    render();
+});
+
 document.querySelectorAll('input[name="cursorMode"]').forEach(r => {
     r.addEventListener("change", e => { cursorMode = e.target.value; render(); });
 });
 
+[showXLine, showYLine].forEach(el => el.addEventListener("change", render));
+
 plotBtn.addEventListener("click", () => {
     const exprs = functionInput.value.split(",").slice(0, 3);
     functions = exprs.filter(e => e.trim()).map(e => ({ expr: e.trim(), func: parseFunction(e) })).filter(f => f.func);
+    targetFnIndex = 0;
     render();
+});
+
+// 프리셋 기능
+document.querySelectorAll(".preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+        functionInput.value = btn.dataset.fn;
+        plotBtn.click();
+    });
 });
 
 saveImgBtn.addEventListener("click", () => {
     const link = document.createElement("a");
-    link.download = "analysis.png";
+    link.download = "graph_analysis.png";
     link.href = canvas.toDataURL();
     link.click();
-});
-
-exportCsvBtn.addEventListener("click", () => {
-    if(!functions.length) return;
-    let csv = "X," + functions.map((_,i)=>`f${i+1}`).join(",") + "\n";
-    for(let x=-10; x<=10; x+=0.5) {
-        csv += `${x.toFixed(2)},` + functions.map(f=>f.func(x).toFixed(4)).join(",") + "\n";
-    }
-    const blob = new Blob([csv], {type: "text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "data.csv";
-    a.click();
 });
 
 render();
