@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Hash Security Suite | EUC.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hash-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(51, 65, 85, 1);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .hash-card:hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .status-secure {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-weak {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-broken {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .knowledge-content {
+            line-height: 1.8;
+            color: #94A3B8;
+            font-size: 0.95rem;
+        }
+
+        /* Toast Notification System */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #10b981;
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="toast">Hash Copied to Clipboard!</div>
+
+    <header class="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur-md p-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="main.html" class="text-emerald-500 font-bold text-lg mono hover:opacity-80 transition">←
+                EUC.com</a>
+            <div class="text-sm font-medium text-slate-400 uppercase tracking-widest">Enterprise Cryptography</div>
+            <div class="w-10"></div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#0B1222]">
+        <div class="max-w-4xl mx-auto">
+            <header class="mb-12 text-center">
+                <h1 class="text-4xl font-bold text-white mb-4 tracking-tight">Hash Security Generator</h1>
+                <p class="text-slate-400 max-w-2xl mx-auto text-sm">
+                    Professional-grade cryptographic tool with real-time integrity auditing and depth technical
+                    principles.
+                </p>
+            </header>
+
+            <div class="bg-[#1E293B] p-8 rounded-3xl border border-slate-700 shadow-2xl mb-12">
+                <label class="block text-[10px] font-bold text-emerald-500 uppercase mb-3 tracking-[0.2em]">Input
+                    Payload</label>
+                <textarea id="hash-input" placeholder="Type or paste content to hash..." oninput="generateHashes()"
+                    class="w-full bg-[#0F172A] border border-slate-600 rounded-2xl px-6 py-5 text-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all h-32 resize-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 mb-20" id="hash-results"></div>
+
+            <hr class="border-slate-800 mb-16">
+
+            <div class="space-y-16 pb-24">
+                <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span
+                            class="w-8 h-8 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center mr-3 text-sm">01</span>
+                        Deterministic Logic & The Avalanche Effect
+                    </h2>
+                    <div class="knowledge-content space-y-4">
+                        <p>
+                            A cryptographic hash is a one-way mathematical function. It must be <b>deterministic</b>:
+                            the same input always produces the exact same result. However, modern security relies on the
+                            <b>Avalanche Effect</b>.
+                        </p>
+                        <p>
+                            This means if you change a single bit in your input, the resulting hash bits must change
+                            significantly (ideally 50%). This sensitivity ensures that attackers cannot use statistical
+                            analysis to guess the original data based on similar hash outputs.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span
+                            class="w-8 h-8 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center mr-3 text-sm">02</span>
+                        Understanding Safety Ratings (Visual Audit)
+                    </h2>
+                    <div class="knowledge-content space-y-4">
+                        <p>Not all algorithms are safe for modern use. We categorize them based on <b>Collision
+                                Resistance</b>:</p>
+                        <ul class="space-y-4 pt-2">
+                            <li class="flex gap-4">
+                                <span class="px-2 py-1 h-fit text-[10px] font-bold rounded status-broken">BROKEN</span>
+                                <span><b>MD5:</b> Completely compromised. Collisions can be generated in seconds. Used
+                                    only for non-secure legacy checksums.</span>
+                            </li>
+                            <li class="flex gap-4">
+                                <span class="px-2 py-1 h-fit text-[10px] font-bold rounded status-weak">WEAK</span>
+                                <span><b>SHA-1:</b> Vulnerable to theoretical attacks. No longer trusted for SSL/TLS
+                                    certificates or digital signatures.</span>
+                            </li>
+                            <li class="flex gap-4">
+                                <span class="px-2 py-1 h-fit text-[10px] font-bold rounded status-secure">SECURE</span>
+                                <span><b>SHA-256 / 384 / 512:</b> Current industry standards for blockchain, banking,
+                                    and secure data storage.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span
+                            class="w-8 h-8 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center mr-3 text-sm">03</span>
+                        The Birthday Paradox in Cryptography
+                    </h2>
+                    <div class="knowledge-content space-y-4">
+                        <p>
+                            Why do we need 256 bits? The <b>Birthday Paradox</b> tells us that finding <i>any</i>
+                            collision is much easier than finding a specific one. For an $n$-bit hash, you only need
+                            roughly $2^{n/2}$ attempts to find a collision.
+                        </p>
+                        <p>
+                            For MD5 (128-bit), this means only $2^{64}$ operations are needed—a number easily handled by
+                            modern GPU clusters. SHA-256 requires $2^{128}$ operations, which remains computationally
+                            infeasible with current silicon technology.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span
+                            class="w-8 h-8 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center mr-3 text-sm">04</span>
+                        Key Stretching: Why Speed is a Vulnerability
+                    </h2>
+                    <div class="knowledge-content space-y-4">
+                        <p>
+                            Common hashes like SHA-256 are designed to be fast. However, for <b>Password Storage</b>,
+                            speed is a flaw. Fast hashes allow hackers to attempt billions of combinations per second
+                            using specialized GPU rigs.
+                        </p>
+                        <p>
+                            Professional security uses <b>Key Stretching</b> (e.g., PBKDF2, Argon2, bcrypt). These
+                            algorithms force the CPU to perform thousands of internal iterations, making a single guess
+                            take 100ms instead of 1ns. This delay is negligible for a user but renders brute-force
+                            attacks impossible.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span
+                            class="w-8 h-8 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center mr-3 text-sm">05</span>
+                        Quantum Resistance & Future Integrity
+                    </h2>
+                    <div class="knowledge-content space-y-4">
+                        <p>
+                            Quantum computers using <b>Grover's Algorithm</b> could effectively halve the security of
+                            current hash functions. In a post-quantum world, SHA-256 would only provide 128-bit
+                            security.
+                        </p>
+                        <p>
+                            To maintain a long-term safety margin, security experts recommend shifting toward
+                            <b>SHA-384</b> or <b>SHA-512</b>. By doubling the output size, we ensure that even with
+                            quantum acceleration, the remaining search space is too large for any entity to crack.
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const algorithms = [
+            { id: 'MD5', fn: CryptoJS.MD5, status: 'BROKEN', class: 'status-broken' },
+            { id: 'SHA1', fn: CryptoJS.SHA1, status: 'WEAK', class: 'status-weak' },
+            { id: 'SHA256', fn: CryptoJS.SHA256, status: 'SECURE', class: 'status-secure' },
+            { id: 'SHA384', fn: CryptoJS.SHA384, status: 'SECURE', class: 'status-secure' },
+            { id: 'SHA512', fn: CryptoJS.SHA512, status: 'SECURE', class: 'status-secure' },
+            { id: 'SHA3-512', fn: CryptoJS.SHA3, status: 'SECURE', class: 'status-secure' }
+        ];
+
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function copyHash(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast();
+            });
+        }
+
+        function generateHashes() {
+            const input = document.getElementById('hash-input').value;
+            const container = document.getElementById('hash-results');
+
+            if (!input) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-600 font-mono text-xs tracking-widest italic">Ready for input payload...</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            algorithms.forEach(algo => {
+                const hash = algo.fn(input).toString();
+                container.innerHTML += `
+                    <div class="hash-card p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 group" onclick="copyHash('${hash}')">
+                        <div class="min-w-[140px]">
+                            <span class="text-[9px] font-black px-2 py-1 rounded ${algo.class} uppercase tracking-widest">${algo.status}</span>
+                            <div class="text-xs font-bold text-white mt-2">${algo.id}</div>
+                        </div>
+                        <div class="flex-1 font-mono text-sm text-slate-300 break-all bg-black/30 p-4 rounded-xl border border-white/5 group-hover:border-emerald-500/30 transition-colors">
+                            ${hash}
+                        </div>
+                        <div class="text-emerald-500 text-[9px] font-bold opacity-0 group-hover:opacity-100 transition-opacity uppercase shrink-0">Click to Copy</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Initialize
+        generateHashes();
+    </script>
+</body>
+
+</html>

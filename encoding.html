@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Data Transcoder | EUC.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+            overflow: hidden;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .sidebar-item {
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item.active {
+            background: rgba(168, 85, 247, 0.1);
+            border-left-color: #a855f7;
+            color: #fff;
+        }
+
+        .content-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        .encoder-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(51, 65, 85, 1);
+        }
+
+        .knowledge-content {
+            line-height: 1.8;
+            color: #94A3B8;
+            font-size: 0.95rem;
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #a855f7;
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col">
+
+    <div id="toast">Action Completed!</div>
+
+    <header class="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur-md p-4 flex-none">
+        <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
+            <a href="main.html" class="text-purple-500 font-bold text-lg mono hover:opacity-80 transition">←
+                EUC.com</a>
+            <div class="text-sm font-medium text-slate-400 uppercase tracking-[0.3em]">Data Transformation Suite</div>
+            <div class="w-10"></div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 border-r border-slate-800 bg-[#0F172A] p-6 hidden md:block overflow-y-auto">
+            <div class="mb-8">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Core Encoders</h3>
+                <nav class="space-y-1">
+                    <button onclick="showPanel('standard')"
+                        class="sidebar-item w-full text-left px-4 py-3 text-sm font-medium text-slate-400 hover:text-white rounded-lg active"
+                        id="btn-standard">Base64 / URL / Hex</button>
+                    <button onclick="showPanel('jwt')"
+                        class="sidebar-item w-full text-left px-4 py-3 text-sm font-medium text-slate-400 hover:text-white rounded-lg"
+                        id="btn-jwt">JWT Processor</button>
+                </nav>
+            </div>
+            <div class="mb-8">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Formatters & Logic</h3>
+                <nav class="space-y-1">
+                    <button onclick="showPanel('formatter')"
+                        class="sidebar-item w-full text-left px-4 py-3 text-sm font-medium text-slate-400 hover:text-white rounded-lg"
+                        id="btn-formatter">JSON / XML Formatter</button>
+                    <button onclick="showPanel('binary')"
+                        class="sidebar-item w-full text-left px-4 py-3 text-sm font-medium text-slate-400 hover:text-white rounded-lg"
+                        id="btn-binary">Binary / Morse</button>
+                    <button onclick="showPanel('text')"
+                        class="sidebar-item w-full text-left px-4 py-3 text-sm font-medium text-slate-400 hover:text-white rounded-lg"
+                        id="btn-text">Case / Slug Converter</button>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto content-area bg-[#0B1222] p-6 md:p-12">
+            <div class="max-w-4xl mx-auto">
+
+                <div id="panel-standard" class="panel">
+                    <h2 class="text-3xl font-bold text-white mb-8">Standard Transcoder</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-black text-purple-500 uppercase tracking-widest">Encoder (Raw to
+                                Encoded)</h3>
+                            <div class="encoder-card p-6 rounded-2xl space-y-4">
+                                <textarea id="std-enc-input" oninput="runEnc()" placeholder="Enter plain text..."
+                                    class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-4 py-3 text-white h-32 resize-none mono text-sm"></textarea>
+                                <div class="space-y-2">
+                                    <div class="bg-black/30 p-3 rounded-lg border border-white/5 cursor-pointer"
+                                        onclick="copyValText(document.getElementById('out-b64').innerText)">
+                                        <span class="text-[9px] text-slate-500 uppercase block">Base64 Output</span>
+                                        <div id="out-b64" class="text-xs text-purple-300 mono break-all mt-1">...</div>
+                                    </div>
+                                    <div class="bg-black/30 p-3 rounded-lg border border-white/5 cursor-pointer"
+                                        onclick="copyValText(document.getElementById('out-url').innerText)">
+                                        <span class="text-[9px] text-slate-500 uppercase block">URL Encoded</span>
+                                        <div id="out-url" class="text-xs text-purple-300 mono break-all mt-1">...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-black text-emerald-500 uppercase tracking-widest">Decoder (Encoded
+                                to Raw)</h3>
+                            <div class="encoder-card p-6 rounded-2xl space-y-4">
+                                <textarea id="std-dec-input" oninput="runDec()" placeholder="Enter Base64 or Hex..."
+                                    class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-4 py-3 text-white h-32 resize-none mono text-sm"></textarea>
+                                <div class="bg-black/30 p-4 rounded-lg border border-white/5 min-h-[110px]">
+                                    <span class="text-[9px] text-slate-500 uppercase block mb-2">Decoded Result</span>
+                                    <div id="out-dec" class="text-sm text-emerald-400 mono whitespace-pre-wrap">...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-jwt" class="panel hidden">
+                    <h2 class="text-3xl font-bold text-white mb-8">JWT Processor</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-black text-emerald-500 uppercase tracking-widest">JWT Decoder</h3>
+                            <div class="encoder-card p-6 rounded-2xl space-y-4">
+                                <textarea id="jwt-dec-in" oninput="doJWTDec()" placeholder="Header.Payload.Signature"
+                                    class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-4 py-3 text-white h-32 resize-none mono text-[11px]"></textarea>
+                                <div class="space-y-2">
+                                    <pre id="jwt-header-out"
+                                        class="bg-black/30 p-3 rounded-lg text-[10px] text-slate-400 mono overflow-auto h-24 border border-white/5">Header: {}</pre>
+                                    <pre id="jwt-payload-out"
+                                        class="bg-black/30 p-3 rounded-lg text-[10px] text-slate-400 mono overflow-auto h-40 border border-white/5">Payload: {}</pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-black text-purple-500 uppercase tracking-widest">JWT Encoder
+                                (Unsecured)</h3>
+                            <div class="encoder-card p-6 rounded-2xl space-y-4">
+                                <textarea id="jwt-enc-in"
+                                    class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-4 py-3 text-white h-48 resize-none mono text-[11px]">{
+  "sub": "1234567890",
+  "name": "Admin User",
+  "iat": 1516239022
+}</textarea>
+                                <button onclick="doJWTEnc()"
+                                    class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition shadow-lg">Generate
+                                    Token</button>
+                                <div class="bg-black/40 p-4 rounded-xl border border-purple-500/20 break-all cursor-pointer"
+                                    onclick="copyValText(this.innerText)">
+                                    <span class="text-[9px] text-slate-500 uppercase block mb-1">Result Token</span>
+                                    <div id="jwt-token-out" class="text-[10px] text-purple-300 mono">...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-formatter" class="panel hidden">
+                    <h2 class="text-3xl font-bold text-white mb-8">Data Formatter</h2>
+                    <div class="encoder-card p-6 rounded-2xl mb-16">
+                        <div class="flex gap-2 mb-4">
+                            <button onclick="fmtData('json')"
+                                class="px-4 py-2 bg-purple-600 rounded-lg text-xs font-bold">JSON Pretty</button>
+                            <button onclick="fmtData('xml')"
+                                class="px-4 py-2 bg-slate-700 rounded-lg text-xs font-bold">XML Pretty</button>
+                            <button onclick="fmtData('mini')"
+                                class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-xs font-bold">Minify</button>
+                        </div>
+                        <textarea id="fmt-input" placeholder="Paste JSON or XML here..."
+                            class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-6 py-5 text-white h-96 resize-none mono text-sm"></textarea>
+                    </div>
+                </div>
+
+                <div id="panel-binary" class="panel hidden">
+                    <h2 class="text-3xl font-bold text-white mb-8">Binary & Morse</h2>
+                    <div class="encoder-card p-8 rounded-3xl space-y-8 mb-16">
+                        <textarea id="bin-in" oninput="doBin()" placeholder="Enter text..."
+                            class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-5 py-4 text-white h-32 resize-none"></textarea>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="bg-black/40 p-5 rounded-2xl border border-white/5">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Binary
+                                    Output</span>
+                                <div id="bin-out" class="mono text-xs text-purple-300 break-all">...</div>
+                            </div>
+                            <div class="bg-black/40 p-5 rounded-2xl border border-white/5">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Morse Code
+                                    Output</span>
+                                <div id="mor-out" class="mono text-xs text-yellow-400 break-all">...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-text" class="panel hidden">
+                    <h2 class="text-3xl font-bold text-white mb-8">Case Converter</h2>
+                    <div class="encoder-card p-8 rounded-3xl mb-16">
+                        <textarea id="case-in" oninput="doCase()" placeholder="Enter text..."
+                            class="w-full bg-[#0F172A] border border-slate-700 rounded-xl px-5 py-4 text-white h-32 mb-8"></textarea>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div onclick="copyValText(this.innerText)" id="c-upper"
+                                class="p-4 bg-slate-800 rounded-xl text-[10px] font-bold cursor-pointer hover:bg-purple-600 transition">
+                                UPPERCASE</div>
+                            <div onclick="copyValText(this.innerText)" id="c-lower"
+                                class="p-4 bg-slate-800 rounded-xl text-[10px] font-bold cursor-pointer hover:bg-purple-600 transition">
+                                lowercase</div>
+                            <div onclick="copyValText(this.innerText)" id="c-slug"
+                                class="p-4 bg-slate-800 rounded-xl text-[10px] font-bold cursor-pointer hover:bg-purple-600 transition">
+                                slug-case</div>
+                            <div onclick="copyValText(this.innerText)" id="c-snake"
+                                class="p-4 bg-slate-800 rounded-xl text-[10px] font-bold cursor-pointer hover:bg-purple-600 transition">
+                                snake_case</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-12 pb-24">
+                    <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                        <h3 class="text-xl font-bold text-white mb-4">01. The JSON vs XML Paradigm Shift</h3>
+                        <p class="knowledge-content">In the early 2000s, XML was the undisputed king of data
+                            interchange. However, its verbosity and the overhead of closing tags led to the rise of
+                            <b>JSON</b>. JSON's direct mapping to JavaScript objects made it the native language of the
+                            web. Today, while XML survives in enterprise SOAP services and document metadata, JSON
+                            powers 99% of modern REST and GraphQL APIs due to its minimalist foot-print and parsing
+                            efficiency.</p>
+                    </section>
+                    <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                        <h3 class="text-xl font-bold text-white mb-4">02. Base64 and the 7-Bit Limitation</h3>
+                        <p class="knowledge-content">Base64 was not designed for encryption but for
+                            <b>compatibility</b>. Early email systems (SMTP) were restricted to 7-bit ASCII. Sending raw
+                            8-bit binary data (like images) would result in certain bytes being interpreted as control
+                            characters, crashing the transmission. Base64 bridges this gap by encoding binary into 64
+                            safe ASCII characters, ensuring data integrity across legacy network nodes.</p>
+                    </section>
+                    <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                        <h3 class="text-xl font-bold text-white mb-4">03. JWT: The Stateless Identity</h3>
+                        <p class="knowledge-content">JSON Web Tokens (JWT) revolutionized web security by introducing
+                            <b>stateless authentication</b>. Instead of the server storing a session in a database, the
+                            server issues a signed token to the client. The client sends this token with every request.
+                            Because it is cryptographically signed, the server can trust the identity without looking up
+                            a database, enabling massive scalability in microservice architectures.</p>
+                    </section>
+                    <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                        <h3 class="text-xl font-bold text-white mb-4">04. Binary: The Transistor's Language</h3>
+                        <p class="knowledge-content">At the lowest level, all data is binary. Every character you type
+                            is converted into a numeric code (Unicode) and then into 8-bit sequences (Bytes). Binary
+                            encoding reveals the absolute raw state of information before any abstraction. Understanding
+                            binary is crucial for debugging low-level memory issues, bitwise operations, and
+                            hardware-level communication protocols.</p>
+                    </section>
+                    <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                        <h3 class="text-xl font-bold text-white mb-4">05. URI Encoding and Reserved Characters</h3>
+                        <p class="knowledge-content">URLs have a limited character set defined by RFC 3986. Characters
+                            like <code>/</code>, <code>?</code>, and <code>#</code> have structural meanings. If your
+                            data contains these characters, they must be <b>Percent-Encoded</b> to prevent the browser
+                            from misinterpreting your data as a new URL path or query parameter. This is the foundation
+                            of reliable web navigation and form submission.</p>
+                    </section>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const params = new URLSearchParams(window.location.search);
+            const type = params.get('type');
+            const data = params.get('data');
+            if (type) {
+                activatePanel(type, false);
+                if (data) fillAndRun(type, decodeURIComponent(data));
+            }
+        };
+
+        function showPanel(id) { activatePanel(id, true); }
+
+        function activatePanel(id, updateUrl) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+            const targetP = document.getElementById('panel-' + id);
+            const targetB = document.getElementById('btn-' + id);
+            if (targetP && targetB) {
+                targetP.classList.remove('hidden');
+                targetB.classList.add('active');
+                if (updateUrl) {
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?type=' + id;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                }
+            }
+        }
+
+        function fillAndRun(type, data) {
+            if (type === 'standard') { document.getElementById('std-enc-input').value = data; runEnc(); }
+            else if (type === 'jwt') { document.getElementById('jwt-dec-in').value = data; doJWTDec(); }
+            else if (type === 'formatter') { document.getElementById('fmt-input').value = data; fmtData('json'); }
+            else if (type === 'binary') { document.getElementById('bin-in').value = data; doBin(); }
+            else if (type === 'text') { document.getElementById('case-in').value = data; doCase(); }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            t.innerText = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 2500);
+        }
+
+        function copyValText(text) {
+            if (text && text !== "...") {
+                navigator.clipboard.writeText(text).then(() => showToast("Copied!"));
+            }
+        }
+
+        function runEnc() {
+            const v = document.getElementById('std-enc-input').value;
+            if (!v) return;
+            document.getElementById('out-b64').innerText = btoa(unescape(encodeURIComponent(v)));
+            document.getElementById('out-url').innerText = encodeURIComponent(v);
+        }
+
+        function runDec() {
+            const v = document.getElementById('std-dec-input').value.trim();
+            try {
+                document.getElementById('out-dec').innerText = decodeURIComponent(escape(atob(v)));
+            } catch (e) { document.getElementById('out-dec').innerText = "Invalid Base64"; }
+        }
+
+        function doJWTDec() {
+            const token = document.getElementById('jwt-dec-in').value.trim();
+            const parts = token.split('.');
+            if (parts.length >= 2) {
+                try {
+                    const h = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
+                    const p = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                    document.getElementById('jwt-header-out').innerText = "Header: " + JSON.stringify(h, null, 2);
+                    document.getElementById('jwt-payload-out').innerText = "Payload: " + JSON.stringify(p, null, 2);
+                } catch (e) { }
+            }
+        }
+
+        function doJWTEnc() {
+            try {
+                const header = { "alg": "none", "typ": "JWT" };
+                const payload = JSON.parse(document.getElementById('jwt-enc-in').value);
+                const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+                document.getElementById('jwt-token-out').innerText = `${b64(header)}.${b64(payload)}.`;
+                showToast("Generated!");
+            } catch (e) { showToast("Invalid JSON"); }
+        }
+
+        function fmtData(type) {
+            const el = document.getElementById('fmt-input');
+            try {
+                if (type === 'json') el.value = JSON.stringify(JSON.parse(el.value), null, 4);
+                else if (type === 'mini') el.value = JSON.stringify(JSON.parse(el.value));
+                else el.value = el.value.replace(/(>)(<)(\/*)/g, '$1\n$2$3');
+                showToast("Formatted!");
+            } catch (e) { showToast("Error"); }
+        }
+
+        function doBin() {
+            const v = document.getElementById('bin-in').value;
+            document.getElementById('bin-out').innerText = v.split('').map(c => c.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+            const m = { 'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.', 'f': '..-.', 'g': '--.', 'h': '....', 'i': '..', 'j': '.---', 'k': '-.-', 'l': '.-..', 'm': '--', 'n': '-.', 'o': '---', 'p': '.--.', 'q': '--.-', 'r': '.-.', 's': '...', 't': '-', 'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-', 'y': '-.--', 'z': '--..', ' ': '/' };
+            document.getElementById('mor-out').innerText = v.toLowerCase().split('').map(c => m[c] || '').join(' ');
+        }
+
+        function doCase() {
+            const v = document.getElementById('case-in').value;
+            document.getElementById('c-upper').innerText = v.toUpperCase();
+            document.getElementById('c-lower').innerText = v.toLowerCase();
+            document.getElementById('c-slug').innerText = v.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
+            document.getElementById('c-snake').innerText = v.toLowerCase().replace(/ /g, '_').replace(/[^\w_]/g, '');
+        }
+    </script>
+</body>
+
+</html>

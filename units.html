@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Unit Converter | EUC.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+
+        .category-btn.active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            font-weight: 600;
+        }
+
+        .knowledge-content {
+            line-height: 1.8;
+            color: #94A3B8;
+            font-size: 0.95rem;
+        }
+
+        .formula-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(51, 65, 85, 1);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <header class="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur-md p-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="main.html" class="text-emerald-500 font-bold text-lg mono hover:opacity-80 transition">←
+                EUC.com</a>
+            <div class="text-sm font-medium text-slate-400">Professional Engineering Encyclopedia</div>
+            <div class="w-10"></div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-72 border-r border-slate-800 p-4 hidden md:flex flex-col">
+            <input type="text" id="cat-search" oninput="filterCategories()" placeholder="Search 30 Categories..."
+                class="w-full bg-[#1E293B] border border-slate-700 rounded-xl px-4 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+            <nav class="space-y-1 overflow-y-auto pr-2 no-scrollbar" id="category-menu"></nav>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#0B1222]">
+            <div class="max-w-4xl mx-auto">
+                <header class="mb-8">
+                    <h1 id="current-category-title" class="text-3xl font-bold text-white mb-2">Converter</h1>
+                    <p id="current-category-desc" class="text-slate-400 text-sm"></p>
+                </header>
+
+                <div class="bg-[#1E293B] p-8 rounded-3xl border border-slate-700 shadow-2xl mb-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-500 uppercase mb-2">Value</label>
+                            <input type="number" id="main-input" value="1" oninput="calculate()"
+                                class="w-full bg-[#0F172A] border border-slate-600 rounded-2xl px-5 py-4 text-2xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-500 uppercase mb-2">From Unit</label>
+                            <select id="from-unit" onchange="calculate()"
+                                class="w-full bg-[#0F172A] border border-slate-600 rounded-2xl px-5 py-4 text-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none cursor-pointer">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-16" id="results-list"></div>
+
+                <div class="space-y-12">
+                    <section>
+                        <h3 class="text-emerald-500 text-xs font-bold uppercase tracking-widest mb-4">Quick Formula
+                            Reference</h3>
+                        <div id="formula-list"
+                            class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono text-slate-400"></div>
+                    </section>
+
+                    <section class="p-8 bg-slate-900/50 rounded-3xl border border-slate-800">
+                        <h3 class="text-white font-bold mb-6 flex items-center text-xl">
+                            <svg class="w-6 h-6 mr-3 text-emerald-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.582.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                </path>
+                            </svg>
+                            Unit Deep Dive & Technical Origin
+                        </h3>
+                        <div id="category-origin" class="knowledge-content space-y-4"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const unitData = {
+            length: {
+                title: "Length", desc: "Linear distance in one dimension.",
+                origin: "<b>Historical Roots:</b> Early length units were anthropometric. An 'Inch' was the width of a thumb, and a 'Foot' was literally the length of a human foot. This caused massive inconsistencies in trade. <br><br><b>The Metric Standard:</b> In 1791, the French Academy defined the meter as 1/10,000,000 of the distance from the equator to the North Pole. In 1983, this was refined to be the distance light travels in 1/299,792,458 of a second. <br><br><b>Practical Use:</b> Precision engineering relies on the millimeter (mm), while global navigation uses the nautical mile, which equals one minute of latitude.",
+                units: { m: { name: "Meter (m)", factor: 1 }, mm: { name: "Millimeter", factor: 0.001 }, cm: { name: "Centimeter", factor: 0.01 }, km: { name: "Kilometer", factor: 1000 }, in: { name: "Inch", factor: 0.0254 }, ft: { name: "Foot", factor: 0.3048 }, mile: { name: "Mile", factor: 1609.34 } }
+            },
+
+            mass: {
+                title: "Mass", desc: "The quantity of matter in an object.",
+                origin: "<b>Mass vs Weight:</b> Mass is intrinsic; weight is the force of gravity on that mass. A 1kg mass is 1kg everywhere, but weighs less on the Moon. <br><br><b>The Planck Definition:</b> Since 2019, the kilogram is no longer defined by a physical metal cylinder in France. It is now defined by the Planck constant ($h$), ensuring the unit never changes due to physical degradation. <br><br><b>Engineering Tip:</b> In structural calculations, mass must be converted to Newtons (weight) by multiplying by $g$ (approx 9.81).",
+                units: { kg: { name: "Kilogram (kg)", factor: 1 }, g: { name: "Gram", factor: 0.001 }, mg: { name: "Milligram", factor: 1e-6 }, ton: { name: "Metric Ton", factor: 1000 }, lb: { name: "Pound", factor: 0.45359 } }
+            },
+
+            time: {
+                title: "Time", desc: "The progression of events.",
+                origin: "<b>Atomic Precision:</b> The second is defined by the vibrations of a Cesium-133 atom. This is the basis for GPS technology, where nanosecond errors could lead to kilometer-wide location mistakes. <br><br><b>The 60-Base Legacy:</b> Our use of 60 seconds and 60 minutes comes from Ancient Sumerian sexagesimal systems, chosen because 60 is divisible by many integers. <br><br><b>Scientific Fact:</b> Time is relative. According to Einstein, time moves slower for objects moving at high speeds or near massive gravity sources.",
+                units: { s: { name: "Second", factor: 1 }, min: { name: "Minute", factor: 60 }, hr: { name: "Hour", factor: 3600 }, day: { name: "Day", factor: 86400 }, year: { name: "Year", factor: 31536000 } }
+            },
+
+            area: {
+                title: "Area", desc: "Extent of a two-dimensional surface.",
+                origin: "<b>Geometric Origin:</b> Derived from the square of length. One 'Acre' was historically the amount of land a yoke of oxen could plow in one day. <br><br><b>Real Estate Units:</b> In Korea, the 'Pyeong' (3.3058m²) remains the psychological standard for apartment sizes, despite official metrication. <br><br><b>Calculation Note:</b> When converting areas, remember that the scale factor is squared. (10cm x 10cm = 100cm², not 10cm²).",
+                units: { m2: { name: "Square Meter", factor: 1 }, km2: { name: "Square KM", factor: 1e6 }, ft2: { name: "Square Foot", factor: 0.0929 }, acre: { name: "Acre", factor: 4046.86 }, pyeong: { name: "Pyeong (평)", factor: 3.3057 } }
+            },
+
+            volume: {
+                title: "Volume", desc: "Capacity of a 3D object.",
+                origin: "<b>Fluid vs Solid:</b> The Liter is the standard for fluids, while Cubic Meters are used for large-scale engineering like concrete or excavations. <br><br><b>US Gallon Confusion:</b> The US liquid gallon is 3.785 liters, while the Imperial (UK) gallon is 4.546 liters. Always verify regional standards in international logistics. <br><br><b>Scientific Fact:</b> 1 Liter of pure water weighs almost exactly 1 Kilogram at standard temperature and pressure.",
+                units: { m3: { name: "Cubic Meter", factor: 1 }, l: { name: "Liter", factor: 0.001 }, ml: { name: "Milliliter", factor: 1e-6 }, gal: { name: "US Gallon", factor: 0.003785 }, ft3: { name: "Cubic Foot", factor: 0.0283 } }
+            },
+
+            velocity: {
+                title: "Velocity", desc: "Rate of change of position.",
+                origin: "<b>The Speed of Light:</b> The ultimate speed limit of the universe is $c$ (approx 300,000 km/s). <br><br><b>Nautical Speed:</b> 'Knots' come from the old method of dropping a knotted rope into the sea to measure how many knots passed in a set time. <br><br><b>Mach Number:</b> Mach 1 is the speed of sound. It is not constant; it changes based on air temperature and altitude.",
+                units: { ms: { name: "m/s", factor: 1 }, kmh: { name: "km/h", factor: 0.2777 }, mph: { name: "mph", factor: 0.447 }, knot: { name: "Knot", factor: 0.5144 } }
+            },
+
+            acceleration: {
+                title: "Acceleration", desc: "Rate of change of velocity.",
+                origin: "<b>Gravity Constant:</b> Standard gravity on Earth is 9.80665 m/s². This is often referred to as '1G'. <br><br><b>High G-Force:</b> Fighter pilots can experience up to 9Gs, meaning they feel 9 times their body weight. <br><br><b>Formula:</b> $a = \Delta v / \Delta t$. Acceleration is a vector, meaning it has both magnitude and direction.",
+                units: { ms2: { name: "m/s²", factor: 1 }, g: { name: "Gravity (g)", factor: 9.80665 }, fts2: { name: "ft/s²", factor: 0.3048 } }
+            },
+
+            angle: {
+                title: "Angle", desc: "Rotation between two rays.",
+                origin: "<b>Degrees:</b> The 360° circle likely comes from the ancient calendar year (approx 360 days). <br><br><b>Radians:</b> The preferred unit in calculus and physics. One radian is the angle where the arc length equals the radius. <br><br><b>Surveying:</b> 'Gradians' divide a right angle into 100, used in certain civil engineering and surveying contexts.",
+                units: { deg: { name: "Degree", factor: 1 }, rad: { name: "Radian", factor: 57.2958 }, grad: { name: "Gradian", factor: 0.9 } }
+            },
+
+            force: {
+                title: "Force", desc: "Push or pull on an object.",
+                origin: "<b>Newton's Law:</b> $F = ma$. 1 Newton is the force needed to move 1kg at 1m/s². <br><br><b>Pound-Force:</b> In the US, 'lbf' is often confused with mass. 1 lbf is the weight of 1 lb mass on Earth. <br><br><b>Practicality:</b> Measuring force is vital for checking the structural integrity of bridges and the thrust of rocket engines.",
+                units: { n: { name: "Newton", factor: 1 }, kn: { name: "KiloNewton", factor: 1000 }, kgf: { name: "kgf", factor: 9.8066 }, lbf: { name: "lbf", factor: 4.4482 } }
+            },
+
+            pressure: {
+                title: "Pressure", desc: "Force distributed over an area.",
+                origin: "<b>Pascal (Pa):</b> The SI unit, equal to 1 N/m². It is so small that kPa or bar are more common for tires and pumps. <br><br><b>Atmospheric Pressure:</b> At sea level, air pushes down with 101,325 Pascals of pressure. <br><br><b>Hydraulic Power:</b> High-pressure systems (over 200 bar) can cut through steel using water jets.",
+                units: { pa: { name: "Pascal", factor: 1 }, kpa: { name: "kPa", factor: 1000 }, bar: { name: "Bar", factor: 100000 }, psi: { name: "PSI", factor: 6894.76 }, atm: { name: "Atmosphere", factor: 101325 } }
+            },
+
+            energy: {
+                title: "Energy", desc: "Capacity to do work.",
+                origin: "<b>The Joule:</b> Named after James Prescott Joule, who proved heat and work are two forms of the same thing. <br><br><b>Food Calories:</b> 1 'Calorie' (with a capital C) is actually a kilocalorie (1,000 calories). <br><br><b>Power Generation:</b> kWh (Kilowatt-hour) is the standard for measuring home electricity usage, representing 1kW used for 1 hour.",
+                units: { j: { name: "Joule", factor: 1 }, cal: { name: "Calorie", factor: 4.184 }, kwh: { name: "kWh", factor: 3.6e6 }, btu: { name: "BTU", factor: 1055.06 } }
+            },
+
+            power: {
+                title: "Power", desc: "Energy per unit time.",
+                origin: "<b>Watt (W):</b> Equal to 1 Joule per second. <br><br><b>Horsepower:</b> Invented by James Watt to show how many horses his steam engine could replace. <br><br><b>Efficiency:</b> Power is usually lost as heat. A motor might draw 1000W but only provide 800W of mechanical power.",
+                units: { w: { name: "Watt", factor: 1 }, kw: { name: "kW", factor: 1000 }, mw: { name: "MW", factor: 1e6 }, hp: { name: "Horsepower", factor: 745.7 } }
+            },
+
+            torque: {
+                title: "Torque", desc: "Rotational force.",
+                origin: "<b>Leverage:</b> Torque depends on force and the distance from the pivot ($T = F \cdot r$). This is why long wrenches make it easier to loosen bolts. <br><br><b>Engine Specs:</b> Torque is what gives a car 'acceleration' from a stop, while Horsepower determines top speed. <br><br><b>Tightening:</b> Precision bolts must be tightened to a specific Nm to ensure they don't break or come loose.",
+                units: { nm: { name: "N·m", factor: 1 }, kgfm: { name: "kgf·m", factor: 9.8066 }, lbfft: { name: "lbf·ft", factor: 1.3558 } }
+            },
+
+            density: {
+                title: "Density", desc: "Mass per unit volume.",
+                origin: "<b>Archimedes:</b> The principle of density helped Archimedes determine if a crown was pure gold by measuring its displacement in water. <br><br><b>Material Property:</b> Steel is roughly 7850 kg/m³, while air is only 1.2 kg/m³. <br><br><b>Specific Gravity:</b> A ratio of a substance's density to water's density ($1000\text{ kg/m}^3$).",
+                units: { kgm3: { name: "kg/m³", factor: 1 }, gcm3: { name: "g/cm³", factor: 1000 }, lbft3: { name: "lb/ft³", factor: 16.0185 } }
+            },
+
+            viscosity_dyn: {
+                title: "Dynamic Viscosity", desc: "Fluid's resistance to flow.",
+                origin: "<b>Internal Friction:</b> Viscosity determines how 'thick' a fluid is. Honey has high viscosity; water has low. <br><br><b>Temperature:</b> Viscosity drops as liquids get hotter. This is why car oil must be designed to work in both cold starts and hot engine runs. <br><br><b>Units:</b> The Poise (P) is named after Jean Léonard Marie Poiseuille.",
+                units: { pas: { name: "Pa·s", factor: 1 }, p: { name: "Poise", factor: 0.1 }, cp: { name: "Centipoise", factor: 0.001 } }
+            },
+
+            viscosity_kin: {
+                title: "Kinematic Viscosity", desc: "Dynamic viscosity / density.",
+                origin: "<b>Gravity Flow:</b> Measures how a fluid flows under the influence of gravity. <br><br><b>Industry Standard:</b> ISO VG grades for oils are based on kinematic viscosity at 40°C. <br><br><b>Stokes:</b> Named after George Gabriel Stokes, 1 St = 1 cm²/s.",
+                units: { m2s: { name: "m²/s", factor: 1 }, st: { name: "Stokes", factor: 0.0001 }, cst: { name: "Centistokes", factor: 1e-6 } }
+            },
+
+            current: {
+                title: "Electric Current", desc: "Flow of electric charge.",
+                origin: "<b>The Ampere:</b> Defined by the flow of roughly $6.24 \cdot 10^{18}$ electrons per second. <br><br><b>Safety:</b> It's not the voltage that kills, it's the current. Even 0.1A can be fatal to humans. <br><br><b>Magnetic Field:</b> Every electric current creates a magnetic field, the basic principle behind electric motors.",
+                units: { a: { name: "Ampere", factor: 1 }, ma: { name: "mA", factor: 0.001 }, ka: { name: "kA", factor: 1000 } }
+            },
+
+            voltage: {
+                title: "Voltage", desc: "Electric potential difference.",
+                origin: "<b>Electrical Pressure:</b> Voltage is the 'push' that makes current move. <br><br><b>Battery Origin:</b> Named after Alessandro Volta, who built the first chemical battery. <br><br><b>High Voltage:</b> Power lines use high voltage (up to 765kV) to minimize energy loss over long distances.",
+                units: { v: { name: "Volt", factor: 1 }, mv: { name: "mV", factor: 0.001 }, kv: { name: "kV", factor: 1000 } }
+            },
+
+            resistance: {
+                title: "Resistance", desc: "Opposition to current flow.",
+                origin: "<b>Ohm's Law:</b> $V = I \cdot R$. Materials like copper have low resistance (conductors); rubber has high resistance (insulators). <br><br><b>Heat:</b> Resistance converts electrical energy into heat, which is how electric heaters and old lightbulbs work. <br><br><b>Superconductivity:</b> At extremely low temperatures, some materials have zero resistance.",
+                units: { ohm: { name: "Ohm (Ω)", factor: 1 }, kohm: { name: "kΩ", factor: 1000 }, mohm: { name: "MΩ", factor: 1e6 } }
+            },
+
+            capacitance: {
+                title: "Capacitance", desc: "Ability to store charge.",
+                origin: "<b>Energy Storage:</b> Capacitors store energy in an electric field. They can release energy much faster than batteries. <br><br><b>The Farad:</b> Named after Michael Faraday. 1 Farad is huge; most electronics use microfarads (µF). <br><br><b>Filtering:</b> In power supplies, capacitors 'smooth out' voltage fluctuations.",
+                units: { f: { name: "Farad", factor: 1 }, uf: { name: "µF", factor: 1e-6 }, nf: { name: "nF", factor: 1e-9 }, pf: { name: "pF", factor: 1e-12 } }
+            },
+
+            inductance: {
+                title: "Inductance", desc: "Storage of magnetic energy.",
+                origin: "<b>Opposition to Change:</b> Inductors oppose any change in current. <br><br><b>The Henry:</b> Named after Joseph Henry. <br><br><b>Wireless Tech:</b> Inductance is key to transformers, motors, and even wireless phone charging.",
+                units: { h: { name: "Henry", factor: 1 }, mh: { name: "mH", factor: 0.001 }, uh: { name: "µH", factor: 1e-6 } }
+            },
+
+            data_storage: {
+                title: "Data Storage", desc: "Digital information volume.",
+                origin: "<b>Binary System:</b> Computers use 0s and 1s. <br><br><b>Binary vs Decimal:</b> Windows uses binary (1024), but hard drive makers use decimal (1000), which is why a '1TB' drive shows as 931GB. <br><br><b>The Byte:</b> 1 Byte = 8 Bits, originally the size needed to store one text character.",
+                units: { b: { name: "Byte", factor: 1 }, kb: { name: "KB (1000)", factor: 1000 }, mb: { name: "MB", factor: 1e6 }, gb: { name: "GB", factor: 1e9 }, tb: { name: "TB", factor: 1e12 } }
+            },
+
+            data_transfer: {
+                title: "Data Transfer", desc: "Speed of data movement.",
+                origin: "<b>Baud vs Bitrate:</b> Bitrate is the actual amount of data per second. <br><br><b>Network Overhead:</b> You never get the full 'advertised' speed because some data is used for packet headers and error checking. <br><br><b>Fiber Optics:</b> Can carry data at Terabits per second using pulses of light.",
+                units: { bps: { name: "bps", factor: 1 }, kbps: { name: "kbps", factor: 1000 }, mbps: { name: "Mbps", factor: 1e6 }, gbps: { name: "Gbps", factor: 1e9 } }
+            },
+
+            flow_vol: {
+                title: "Volumetric Flow", desc: "Volume passing per time.",
+                origin: "<b>Fluid Dynamics:</b> Essential for sizing pipes and water pumps. <br><br><b>Continuity:</b> If a pipe gets narrower, the velocity must increase to keep the flow rate constant. <br><br><b>CFM:</b> Cubic Feet per Minute, common in air conditioning and fan specs.",
+                units: { m3s: { name: "m³/s", factor: 1 }, m3h: { name: "m³/h", factor: 1 / 3600 }, lpm: { name: "L/min", factor: 1 / 60000 }, cfm: { name: "CFM", factor: 0.00047 } }
+            },
+
+            flow_mass: {
+                title: "Mass Flow", desc: "Mass passing per time.",
+                origin: "<b>Precision Metering:</b> Used in chemical plants because mass is more accurate than volume when temperatures change. <br><br><b>Coriolis Meter:</b> A device that measures mass flow by vibrating a tube and sensing the twist caused by the fluid. <br><br><b>Gas Flow:</b> Often measured in kg/h for industrial burners.",
+                units: { kgs: { name: "kg/s", factor: 1 }, kgh: { name: "kg/h", factor: 1 / 3600 }, lbs: { name: "lb/s", factor: 0.4535 } }
+            },
+
+            thermal_cond: {
+                title: "Thermal Conductivity", desc: "Heat conduction rate.",
+                origin: "<b>Insulation:</b> Materials like fiberglass have low conductivity, keeping heat inside. <br><br><b>Heat Sinks:</b> Copper and aluminum are used for CPUs because they move heat away quickly. <br><br><b>W/m·K:</b> Watts per meter-Kelvin is the SI unit.",
+                units: { wmk: { name: "W/(m·K)", factor: 1 }, btu_hrftf: { name: "BTU/(hr·ft·°F)", factor: 1.7307 } }
+            },
+
+            illuminance: {
+                title: "Illuminance", desc: "Light flux per area.",
+                origin: "<b>The Lux:</b> 1 Lux = 1 Lumen per square meter. <br><br><b>Workplace Safety:</b> Offices usually require 500 Lux, while surgery rooms need over 10,000 Lux. <br><br><b>Inverse Square Law:</b> If you double the distance from a light source, the illuminance drops to 1/4th.",
+                units: { lux: { name: "Lux", factor: 1 }, fc: { name: "Foot-candle", factor: 10.76 } }
+            },
+
+            frequency: {
+                title: "Frequency", desc: "Cycles per second.",
+                origin: "<b>The Hertz:</b> Named after Heinrich Hertz, who proved electromagnetic waves exist. <br><br><b>AC Power:</b> Most countries use 50Hz or 60Hz for electricity. <br><br><b>Radio Spectrum:</b> From kHz (AM radio) to GHz (5G and Wi-Fi).",
+                units: { hz: { name: "Hertz", factor: 1 }, khz: { name: "kHz", factor: 1000 }, mhz: { name: "MHz", factor: 1e6 }, ghz: { name: "GHz", factor: 1e9 } }
+            },
+
+            radiation_act: {
+                title: "Radiation Activity", desc: "Decay rate of atoms.",
+                origin: "<b>Becquerel:</b> 1 Bq = 1 decay per second. <br><br><b>The Curie:</b> An older unit based on 1 gram of Radium, equal to 37 billion Bq. <br><br><b>Half-life:</b> The time it takes for the activity of a sample to drop by half.",
+                units: { bq: { name: "Becquerel", factor: 1 }, ci: { name: "Curie", factor: 3.7e10 } }
+            },
+
+            typography: {
+                title: "Typography", desc: "Print/Digital display units.",
+                origin: "<b>The Point:</b> Originally based on the height of a metal type block. <br><br><b>DTP Standard:</b> 1 Point = 1/72 of an inch. <br><br><b>Pica:</b> Equal to 12 points, commonly used for column widths in newspapers.",
+                units: { mm: { name: "Millimeter", factor: 1 }, pt: { name: "Point", factor: 0.352 }, pica: { name: "Pica", factor: 4.23 } }
+            }
+        };
+
+        let currentCat = '';
+
+        function init() {
+            renderCategories();
+            const type = new URLSearchParams(window.location.search).get('type') || 'length';
+            switchCategory(type);
+        }
+
+        function renderCategories() {
+            const menu = document.getElementById('category-menu');
+            menu.innerHTML = '';
+            Object.keys(unitData).forEach(cat => {
+                const btn = document.createElement('button');
+                btn.id = `btn-${cat}`;
+                btn.className = "category-btn w-full text-left px-4 py-2.5 rounded-xl transition text-slate-400 hover:bg-slate-800 text-sm mb-0.5";
+                btn.innerText = unitData[cat].title;
+                btn.onclick = () => { switchCategory(cat); updateURL(cat); };
+                menu.appendChild(btn);
+            });
+        }
+
+        function filterCategories() {
+            const q = document.getElementById('cat-search').value.toLowerCase();
+            Object.keys(unitData).forEach(cat => {
+                const btn = document.getElementById(`btn-${cat}`);
+                btn.style.display = (unitData[cat].title.toLowerCase().includes(q) || cat.includes(q)) ? 'block' : 'none';
+            });
+        }
+
+        function switchCategory(cat) {
+            currentCat = cat;
+            const data = unitData[cat];
+            document.getElementById('current-category-title').innerText = data.title;
+            document.getElementById('current-category-desc').innerText = data.desc;
+            document.getElementById('category-origin').innerHTML = data.origin;
+
+            const fList = document.getElementById('formula-list');
+            fList.innerHTML = '';
+            const bKey = Object.keys(data.units).find(k => data.units[k].factor === 1);
+            const bName = data.units[bKey].name;
+
+            Object.keys(data.units).forEach(k => {
+                if (k !== bKey) {
+                    const factor = data.units[k].factor;
+                    const uName = data.units[k].name;
+                    const formula = factor >= 1
+                        ? `1 ${uName} = ${factor.toLocaleString()} ${bName}`
+                        : `1 ${bName} = ${(1 / factor).toLocaleString()} ${uName}`;
+                    fList.innerHTML += `<div class="p-3 formula-card rounded-xl border border-slate-800 flex items-center shadow-inner"> ${formula} </div>`;
+                }
+            });
+
+            const select = document.getElementById('from-unit');
+            select.innerHTML = '';
+            Object.keys(data.units).forEach(u => select.innerHTML += `<option value="${u}">${data.units[u].name}</option>`);
+
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${cat}`).classList.add('active');
+            calculate();
+        }
+
+        function updateURL(cat) {
+            const newurl = window.location.origin + window.location.pathname + '?type=' + cat;
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+
+        function calculate() {
+            const val = parseFloat(document.getElementById('main-input').value) || 0;
+            const from = document.getElementById('from-unit').value;
+            const list = document.getElementById('results-list');
+            const units = unitData[currentCat].units;
+            const baseValue = val * units[from].factor;
+
+            list.innerHTML = '';
+            Object.keys(units).forEach(k => {
+                const res = baseValue / units[k].factor;
+                list.innerHTML += `
+                    <div class="flex justify-between items-center p-4 bg-[#1E293B]/40 border border-slate-800 rounded-2xl hover:border-emerald-500/50 transition group cursor-pointer" onclick="navigator.clipboard.writeText('${res}')">
+                        <div class="overflow-hidden">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${units[k].name}</p>
+                            <p class="text-lg font-mono text-white mt-1 truncate">${res.toLocaleString(undefined, { maximumFractionDigits: 10 })}</p>
+                        </div>
+                        <div class="opacity-0 group-hover:opacity-100 transition text-emerald-500 text-[9px] font-bold flex-shrink-0 ml-2">COPY</div>
+                    </div>`;
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
