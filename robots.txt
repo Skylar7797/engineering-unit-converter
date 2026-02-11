@@ -4,5 +4,6 @@ Allow: /$
 Allow: /units.html
 Allow: /encoding.html
 Allow: /hash.html
+Allow: /sitemap.xml
 
 Sitemap: https://engineeringunitconverter.com/sitemap.xml
