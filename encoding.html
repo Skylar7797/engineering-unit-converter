@@ -114,12 +114,29 @@
 
     <div id="toast">Action Completed!</div>
 
-    <header class="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur-md p-4 flex-none">
+    <header class="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur-md p-4 flex-none relative z-[70]">
         <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
-            <a href="index.html" class="text-purple-500 font-bold text-lg mono hover:opacity-80 transition">←
-                EUC.com</a>
-            <div class="text-sm font-medium text-slate-400 uppercase tracking-[0.3em]">Data Transformation Suite</div>
+            <a href="index.html" class="text-purple-500 font-bold text-lg mono hover:opacity-80 transition">← EUC.com</a>
+            
+            <button onclick="toggleMobileMenu()" class="flex items-center space-x-2 md:hidden">
+                <span id="mobile-current-name" class="text-xs font-bold text-slate-200 uppercase tracking-widest">Base64 / URL / Hex</span>
+                <svg id="toggle-icon" class="w-4 h-4 text-purple-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+    
+            <div class="hidden md:block text-sm font-medium text-slate-400 uppercase tracking-[0.3em]">Data Transformation Suite</div>
             <div class="w-10"></div>
+        </div>
+    
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#1E293B] border-b border-slate-700 shadow-2xl md:hidden">
+            <nav class="p-4 space-y-2">
+                <button onclick="showPanel('standard')" class="w-full text-left p-3 rounded-lg text-sm text-slate-300 hover:bg-slate-800 border-b border-slate-700/50">Base64 / URL / Hex</button>
+                <button onclick="showPanel('jwt')" class="w-full text-left p-3 rounded-lg text-sm text-slate-300 hover:bg-slate-800 border-b border-slate-700/50">JWT Processor</button>
+                <button onclick="showPanel('formatter')" class="w-full text-left p-3 rounded-lg text-sm text-slate-300 hover:bg-slate-800 border-b border-slate-700/50">JSON / XML Formatter</button>
+                <button onclick="showPanel('binary')" class="w-full text-left p-3 rounded-lg text-sm text-slate-300 hover:bg-slate-800 border-b border-slate-700/50">Binary / Morse</button>
+                <button onclick="showPanel('text')" class="w-full text-left p-3 rounded-lg text-sm text-slate-300 hover:bg-slate-800">Case / Slug Converter</button>
+            </nav>
         </div>
     </header>
 
@@ -352,14 +369,33 @@
 
         function showPanel(id) { activatePanel(id, true); }
 
+        // [추가] 메뉴 열고 닫기 로직
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('toggle-icon');
+            const isHidden = menu.classList.toggle('hidden');
+            // 아이콘 회전 효과
+            icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+        
         function activatePanel(id, updateUrl) {
             document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
             document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+            
             const targetP = document.getElementById('panel-' + id);
             const targetB = document.getElementById('btn-' + id);
-            if (targetP && targetB) {
+            
+            if (targetP) {
                 targetP.classList.remove('hidden');
-                targetB.classList.add('active');
+                if (targetB) targetB.classList.add('active');
+                
+                // --- 모바일 대응 코드 시작 ---
+                const btnText = targetB ? targetB.innerText : "Select Tool";
+                document.getElementById('mobile-current-name').innerText = btnText; // 헤더 텍스트 변경
+                document.getElementById('mobile-menu').classList.add('hidden');    // 메뉴 닫기
+                document.getElementById('toggle-icon').style.transform = 'rotate(0deg)';
+                // --- 모바일 대응 코드 끝 ---
+        
                 if (updateUrl) {
                     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?type=' + id;
                     window.history.pushState({ path: newUrl }, '', newUrl);
