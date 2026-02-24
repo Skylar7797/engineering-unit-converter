@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Online Encoder, Decoder, Formatters</title>
+    <meta name="description" content="Encode, decode, format JSON/JWT, and convert binary text in your browser.">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <link rel="canonical" href="https://engineeringunitconverter.com/encoding.html">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Encoding & Decoder Tools | EUC.com">
+    <meta property="og:description" content="Fast browser-based encoding and formatting toolkit.">
+    <meta property="og:url" content="https://engineeringunitconverter.com/encoding.html">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1VBV3J3DVG"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -24,7 +31,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #0F172A;
             color: #F8FAFC;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         .mono {
@@ -110,7 +117,9 @@
     </style>
 </head>
 
-<body class="h-screen flex flex-col">
+<body class="min-h-screen md:h-screen flex flex-col">
+
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:bg-emerald-500 focus:text-black focus:px-3 focus:py-2 focus:rounded-lg z-[80]">Skip to content</a>
 
     <div id="toast">Action Completed!</div>
 
@@ -169,7 +178,7 @@
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto content-area bg-[#0B1222] p-6 md:p-12">
+        <main id="main-content" class="flex-1 overflow-y-auto content-area bg-[#0B1222] p-4 md:p-12">
             <div class="max-w-4xl mx-auto">
 
                 <div id="panel-standard" class="panel">
@@ -355,6 +364,10 @@
             </div>
         </main>
     </div>
+
+    <footer class="border-t border-slate-800 py-6 bg-[#0B1222] md:hidden">
+      <div class="px-4 text-slate-500 text-xs flex justify-between"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div>
+    </footer>
 
     <script>
         window.onload = function () {
